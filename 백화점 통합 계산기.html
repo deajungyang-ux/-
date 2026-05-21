@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>백화점 통합 계산기 (2026 가격표 적용)</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM (CDN) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+    <!-- Babel (CDN) for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f9fafb; }
+        .radio-btn-active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .radio-btn-inactive { background-color: white; color: #4b5563; border-color: #d1d5db; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // 2026 백화점 가격표 26.1.2ver
+        const priceData = {
+            "노르딕 C4": {
+                "120*200": { "Dione portrait (디오네포트레이트)": 11363000, "Dione 디오네 (LYRA)": 11429000, "Dione(LYRA) Plus (디오네플러스)": 11528000, "Dione Décor (디오네 데코)": 11814000, "Cozy (코지)": 11968000 },
+                "160*200": { "Dione portrait (디오네포트레이트)": 13354000, "Dione 디오네 (LYRA)": 13552000, "Dione(LYRA) Plus (디오네플러스)": 13684000, "Dione Décor (디오네 데코)": 13838000, "Cozy (코지)": 14025000 },
+                "180*210": { "Dione portrait (디오네포트레이트)": 14718000, "Dione 디오네 (LYRA)": 14883000, "Dione(LYRA) Plus (디오네플러스)": 15037000, "Dione Décor (디오네 데코)": 15202000, "Cozy (코지)": 15389000 }
+            },
+            "노르딕 C5": {
+                "160*200": { "Dione portrait (디오네포트레이트)": 13959000, "Dione 디오네 (LYRA)": 14069000, "Dione(LYRA) Plus (디오네플러스)": 14311000, "Dione Décor (디오네 데코)": 14344000, "Cozy (코지)": 15037000 },
+                "180*210": { "Dione portrait (디오네포트레이트)": 17138000, "Dione 디오네 (LYRA)": 17248000, "Dione(LYRA) Plus (디오네플러스)": 17468000, "Dione Décor (디오네 데코)": 17523000, "Cozy (코지)": 18227000 }
+            },
+            "노르딕 C6": {
+                "160*200": { "Dione portrait (디오네포트레이트)": 18315000, "Dione 디오네 (LYRA)": 18425000, "Dione(LYRA) Plus (디오네플러스)": 18656000, "Dione Décor (디오네 데코)": 18700000, "Cozy (코지)": 19393000 },
+                "180*210": { "Dione portrait (디오네포트레이트)": 22363000, "Dione 디오네 (LYRA)": 22473000, "Dione(LYRA) Plus (디오네플러스)": 22693000, "Dione Décor (디오네 데코)": 22748000, "Cozy (코지)": 23463000 }
+            },
+            "노르딕 J4": {
+                "120*200": { "무헤드": 9950000, "Dione 디오네 (LYRA)": 12100000, "Dione(LYRA) Plus (디오네플러스)": 12221000, "Libra (리브러)": 12397000, "Dione portrait (디오네포트레이트)": 12500000, "Dione Décor (디오네 데코)": 12650000, "Cozy Slim (코지슬림)": 12892000, "Manor (매너)": 12892000, "Cozy (코지)": 13607000, "Chess (체스)": 14383000, "Cloud (클라우드)": 14674000, "Adjustable Back (어져스터블 백)": 16313000 },
+                "150*200": { "무헤드": 10731000, "Dione 디오네 (LYRA)": 13817000, "Dione(LYRA) Plus (디오네플러스)": 13949000, "Libra (리브러)": 14103000, "Dione portrait (디오네포트레이트)": 14202000, "Dione Décor (디오네 데코)": 14323000, "Cozy Slim (코지슬림)": 14587000, "Manor (매너)": 14587000, "Cozy (코지)": 15302000, "Chess (체스)": 16068000, "Cloud (클라우드)": 16380000, "Adjustable Back (어져스터블 백)": 18019000 },
+                "160*200": { "무헤드": 11731000, "Dione 디오네 (LYRA)": 14817000, "Dione(LYRA) Plus (디오네플러스)": 14949000, "Libra (리브러)": 15103000, "Dione portrait (디오네포트레이트)": 15202000, "Dione Décor (디오네 데코)": 15323000, "Cozy Slim (코지슬림)": 15587000, "Manor (매너)": 15587000, "Cozy (코지)": 16302000, "Chess (체스)": 17068000, "Cloud (클라우드)": 17380000, "Adjustable Back (어져스터블 백)": 19019000 },
+                "180*210": { "무헤드": 14184000, "Dione 디오네 (LYRA)": 17468000, "Dione(LYRA) Plus (디오네플러스)": 17501000, "Libra (리브러)": 18029000, "Dione portrait (디오네포트레이트)": 17853000, "Dione Décor (디오네 데코)": 18040000, "Cozy Slim (코지슬림)": 18238000, "Manor (매너)": 18172000, "Cozy (코지)": 18953000, "Chess (체스)": 20624000, "Cloud (클라우드)": 20999000, "Adjustable Back (어져스터블 백)": 22616000 },
+                "210*210": { "무헤드": 17759000, "Dione 디오네 (LYRA)": 21263000, "Dione(LYRA) Plus (디오네플러스)": 21307000, "Libra (리브러)": 21736000, "Dione portrait (디오네포트레이트)": 21835000, "Dione Décor (디오네 데코)": 21934000, "Cozy Slim (코지슬림)": 22022000, "Manor (매너)": 22154000, "Cozy (코지)": 22737000, "Chess (체스)": 24356000, "Cloud (클라우드)": 24739000, "Adjustable Back (어져스터블 백)": 26411000 }
+            },
+            "노르딕 J5": {
+                "120*200": { "무헤드": 12600000, "Dione 디오네 (LYRA)": 15301000, "Dione(LYRA) Plus (디오네플러스)": 15378000, "Libra (리브러)": 15554000, "Dione portrait (디오네포트레이트)": 15708000, "Dione Décor (디오네 데코)": 15807000, "Cozy Slim (코지슬림)": 16038000, "Manor (매너)": 16038000, "Cozy (코지)": 16753000, "Chess (체스)": 17540000, "Cloud (클라우드)": 17831000, "Adjustable Back (어져스터블 백)": 19470000 },
+                "150*200": { "무헤드": 15384000, "Dione 디오네 (LYRA)": 18481000, "Dione(LYRA) Plus (디오네플러스)": 18602000, "Libra (리브러)": 18756000, "Dione portrait (디오네포트레이트)": 18866000, "Dione Décor (디오네 데코)": 18987000, "Cozy Slim (코지슬림)": 19240000, "Manor (매너)": 19240000, "Cozy (코지)": 19955000, "Chess (체스)": 20721000, "Cloud (클라우드)": 21033000, "Adjustable Back (어져스터블 백)": 22672000 },
+                "160*200": { "무헤드": 16384000, "Dione 디오네 (LYRA)": 19481000, "Dione(LYRA) Plus (디오네플러스)": 19602000, "Libra (리브러)": 19756000, "Dione portrait (디오네포트레이트)": 19866000, "Dione Décor (디오네 데코)": 19987000, "Cozy Slim (코지슬림)": 20240000, "Manor (매너)": 20240000, "Cozy (코지)": 20955000, "Chess (체스)": 21721000, "Cloud (클라우드)": 22033000, "Adjustable Back (어져스터블 백)": 23672000 },
+                "180*210": { "무헤드": 19068000, "Dione 디오네 (LYRA)": 22363000, "Dione(LYRA) Plus (디오네플러스)": 22385000, "Libra (리브러)": 22924000, "Dione portrait (디오네포트레이트)": 22737000, "Dione Décor (디오네 데코)": 22935000, "Cozy Slim (코지슬림)": 23122000, "Manor (매너)": 23056000, "Cozy (코지)": 23837000, "Chess (체스)": 25508000, "Cloud (클라우드)": 25883000, "Adjustable Back (어져스터블 백)": 27511000 },
+                "210*210": { "무헤드": 23325000, "Dione 디오네 (LYRA)": 26818000, "Dione(LYRA) Plus (디오네플러스)": 26873000, "Libra (리브러)": 27302000, "Dione portrait (디오네포트레이트)": 27390000, "Dione Décor (디오네 데코)": 27489000, "Cozy Slim (코지슬림)": 27588000, "Manor (매너)": 27709000, "Cozy (코지)": 28303000, "Chess (체스)": 29922000, "Cloud (클라우드)": 30305000, "Adjustable Back (어져스터블 백)": 31966000 }
+            },
+            "노르딕 J6": {
+                "120*200": { "무헤드": 17090000, "Dione 디오네 (LYRA)": 19709000, "Dione(LYRA) Plus (디오네플러스)": 19786000, "Libra (리브러)": 19984000, "Dione portrait (디오네포트레이트)": 20149000, "Dione Décor (디오네 데코)": 20259000, "Cozy Slim (코지슬림)": 20512000, "Manor (매너)": 20512000, "Cozy (코지)": 21293000, "Chess (체스)": 22168000, "Cloud (클라우드)": 22459000, "Adjustable Back (어져스터블 백)": 24241000 },
+                "150*200": { "무헤드": 20873000, "Dione 디오네 (LYRA)": 23738000, "Dione(LYRA) Plus (디오네플러스)": 23876000, "Libra (리브러)": 24034000, "Dione portrait (디오네포트레이트)": 24140000, "Dione Décor (디오네 데코)": 24266000, "Cozy Slim (코지슬림)": 24541000, "Manor (매너)": 24541000, "Cozy (코지)": 25291000, "Chess (체스)": 26111000, "Cloud (클라우드)": 26410000, "Adjustable Back (어져스터블 백)": 28121000 },
+                "160*200": { "무헤드": 22230000, "Dione 디오네 (LYRA)": 25234000, "Dione(LYRA) Plus (디오네플러스)": 25377000, "Libra (리브러)": 25542000, "Dione portrait (디오네포트레이트)": 25652000, "Dione Décor (디오네 데코)": 25784000, "Cozy Slim (코지슬림)": 26070000, "Manor (매너)": 26070000, "Cozy (코지)": 26851000, "Chess (체스)": 27705000, "Cloud (클라우드)": 28017000, "Adjustable Back (어져스터블 백)": 29799000 },
+                "180*210": { "무헤드": 25872000, "Dione 디오네 (LYRA)": 29085000, "Dione(LYRA) Plus (디오네플러스)": 29118000, "Libra (리브러)": 29701000, "Dione portrait (디오네포트레이트)": 29503000, "Dione Décor (디오네 데코)": 29712000, "Cozy Slim (코지슬림)": 29921000, "Manor (매너)": 29844000, "Cozy (코지)": 30691000, "Chess (체스)": 32549000, "Cloud (클라우드)": 32924000, "Adjustable Back (어져스터블 백)": 34684000 },
+                "210*210": { "무헤드": 31648000, "Dione 디오네 (LYRA)": 35070000, "Dione(LYRA) Plus (디오네플러스)": 35125000, "Libra (리브러)": 35587000, "Dione portrait (디오네포트레이트)": 35697000, "Dione Décor (디오네 데코)": 35796000, "Cozy Slim (코지슬림)": 35906000, "Manor (매너)": 36038000, "Cozy (코지)": 36676000, "Chess (체스)": 38471000, "Cloud (클라우드)": 38854000, "Adjustable Back (어져스터블 백)": 40669000 }
+            },
+            "컨티넨탈 J4": {
+                "120*200": { "무헤드": 11269000, "Dione 디오네 (LYRA)": 13959000, "Dione(LYRA) Plus (디오네플러스)": 14036000, "Libra (리브러)": 14223000, "Dione portrait (디오네포트레이트)": 14377000, "Dione Décor (디오네 데코)": 14465000, "Cozy Slim (코지슬림)": 14707000, "Manor (매너)": 14707000, "Cozy (코지)": 15422000, "Chess (체스)": 16209000, "Cloud (클라우드)": 16500000, "Adjustable Back (어져스터블 백)": 18139000 },
+                "150*200": { "무헤드": 15022000, "Dione 디오네 (LYRA)": 18108000, "Dione(LYRA) Plus (디오네플러스)": 18240000, "Libra (리브러)": 18383000, "Dione portrait (디오네포트레이트)": 18493000, "Dione Décor (디오네 데코)": 18614000, "Cozy Slim (코지슬림)": 18878000, "Manor (매너)": 18878000, "Cozy (코지)": 19593000, "Chess (체스)": 20447100, "Cloud (클라우드)": 20671000, "Adjustable Back (어져스터블 백)": 22310000 },
+                "160*200": { "무헤드": 17022000, "Dione 디오네 (LYRA)": 20108000, "Dione(LYRA) Plus (디오네플러스)": 20240000, "Libra (리브러)": 20383000, "Dione portrait (디오네포트레이트)": 20493000, "Dione Décor (디오네 데코)": 20614000, "Cozy Slim (코지슬림)": 20878000, "Manor (매너)": 20878000, "Cozy (코지)": 21593000, "Chess (체스)": 22447100, "Cloud (클라우드)": 22671000, "Adjustable Back (어져스터블 백)": 24310000 },
+                "180*210": { "무헤드": 18694000, "Dione 디오네 (LYRA)": 21989000, "Dione(LYRA) Plus (디오네플러스)": 22022000, "Libra (리브러)": 22550000, "Dione portrait (디오네포트레이트)": 22374000, "Dione Décor (디오네 데코)": 22566500, "Cozy Slim (코지슬림)": 22748000, "Manor (매너)": 22682000, "Cozy (코지)": 23463000, "Chess (체스)": 25145000, "Cloud (클라우드)": 25520000, "Adjustable Back (어져스터블 백)": 27137000 },
+                "210*210": { "무헤드": 23677000, "Dione 디오네 (LYRA)": 27170000, "Dione(LYRA) Plus (디오네플러스)": 27225000, "Libra (리브러)": 27654000, "Dione portrait (디오네포트레이트)": 27742000, "Dione Décor (디오네 데코)": 27841000, "Cozy Slim (코지슬림)": 27940000, "Manor (매너)": 28061000, "Cozy (코지)": 28655000, "Chess (체스)": 30274000, "Cloud (클라우드)": 30657000, "Adjustable Back (어져스터블 백)": 32318000 }
+            },
+            "컨티넨탈 J5": {
+                "120*200": { "무헤드": 16989000, "Dione 디오네 (LYRA)": 19679000, "Dione(LYRA) Plus (디오네플러스)": 19756000, "Libra (리브러)": 19943000, "Dione portrait (디오네포트레이트)": 20097000, "Dione Décor (디오네 데코)": 20185000, "Cozy Slim (코지슬림)": 20427000, "Manor (매너)": 20427000, "Cozy (코지)": 21142000, "Chess (체스)": 21929000, "Cloud (클라우드)": 22220000, "Adjustable Back (어져스터블 백)": 23859000 },
+                "150*200": { "무헤드": 19455000, "Dione 디오네 (LYRA)": 22552000, "Dione(LYRA) Plus (디오네플러스)": 22673000, "Libra (리브러)": 22827000, "Dione portrait (디오네포트레이트)": 22937000, "Dione Décor (디오네 데코)": 23058000, "Cozy Slim (코지슬림)": 23311000, "Manor (매너)": 23311000, "Cozy (코지)": 24026000, "Chess (체스)": 24792000, "Cloud (클라우드)": 25104000, "Adjustable Back (어져스터블 백)": 26743000 },
+                "160*200": { "무헤드": 21455000, "Dione 디오네 (LYRA)": 24552000, "Dione(LYRA) Plus (디오네플러스)": 24673000, "Libra (리브러)": 24827000, "Dione portrait (디오네포트레이트)": 24937000, "Dione Décor (디오네 데코)": 25058000, "Cozy Slim (코지슬림)": 25311000, "Manor (매너)": 25311000, "Cozy (코지)": 26026000, "Chess (체스)": 26792000, "Cloud (클라우드)": 27104000, "Adjustable Back (어져스터블 백)": 28743000 },
+                "180*210": { "무헤드": 23358000, "Dione 디오네 (LYRA)": 26653000, "Dione(LYRA) Plus (디오네플러스)": 26675000, "Libra (리브러)": 27214000, "Dione portrait (디오네포트레이트)": 27027000, "Dione Décor (디오네 데코)": 27225000, "Cozy Slim (코지슬림)": 27412000, "Manor (매너)": 27346000, "Cozy (코지)": 28127000, "Chess (체스)": 29798000, "Cloud (클라우드)": 30173000, "Adjustable Back (어져스터블 백)": 31801000 },
+                "210*210": { "무헤드": 28088000, "Dione 디오네 (LYRA)": 31581000, "Dione(LYRA) Plus (디오네플러스)": 31636000, "Libra (리브러)": 32065000, "Dione portrait (디오네포트레이트)": 32153000, "Dione Décor (디오네 데코)": 32252000, "Cozy Slim (코지슬림)": 32351000, "Manor (매너)": 32472000, "Cozy (코지)": 33066000, "Chess (체스)": 34685000, "Cloud (클라우드)": 35068000, "Adjustable Back (어져스터블 백)": 36729000 }
+            },
+            "컨티넨탈 J6": {
+                "120*200": { "무헤드": 20421000, "Dione 디오네 (LYRA)": 23111000, "Dione(LYRA) Plus (디오네플러스)": 23188000, "Libra (리브러)": 23375000, "Dione portrait (디오네포트레이트)": 23518000, "Dione Décor (디오네 데코)": 23617000, "Cozy Slim (코지슬림)": 23859000, "Manor (매너)": 23859000, "Cozy (코지)": 24574000, "Chess (체스)": 25361000, "Cloud (클라우드)": 25652000, "Adjustable Back (어져스터블 백)": 27291000 },
+                "150*200": { "무헤드": 23943000, "Dione 디오네 (LYRA)": 27029000, "Dione(LYRA) Plus (디오네플러스)": 27161000, "Libra (리브러)": 27304000, "Dione portrait (디오네포트레이트)": 27414000, "Dione Décor (디오네 데코)": 27535000, "Cozy Slim (코지슬림)": 27799000, "Manor (매너)": 27799000, "Cozy (코지)": 28514000, "Chess (체스)": 29269000, "Cloud (클라우드)": 29581000, "Adjustable Back (어져스터블 백)": 31220000 },
+                "160*200": { "무헤드": 25943000, "Dione 디오네 (LYRA)": 29029000, "Dione(LYRA) Plus (디오네플러스)": 29161000, "Libra (리브러)": 29304000, "Dione portrait (디오네포트레이트)": 29414000, "Dione Décor (디오네 데코)": 29535000, "Cozy Slim (코지슬림)": 29799000, "Manor (매너)": 29799000, "Cozy (코지)": 30514000, "Chess (체스)": 31269000, "Cloud (클라우드)": 31581000, "Adjustable Back (어져스터블 백)": 33220000 },
+                "180*210": { "무헤드": 28594000, "Dione 디오네 (LYRA)": 31889000, "Dione(LYRA) Plus (디오네플러스)": 31922000, "Libra (리브러)": 32450000, "Dione portrait (디오네포트레이트)": 32274000, "Dione Décor (디오네 데코)": 32461000, "Cozy Slim (코지슬림)": 32659000, "Manor (매너)": 32582000, "Cozy (코지)": 33363000, "Chess (체스)": 35045000, "Cloud (클라우드)": 35420000, "Adjustable Back (어져스터블 백)": 37037000 },
+                "210*210": { "무헤드": 32378000, "Dione 디오네 (LYRA)": 35871000, "Dione(LYRA) Plus (디오네플러스)": 35926000, "Libra (리브러)": 36355000, "Dione portrait (디오네포트레이트)": 36443000, "Dione Décor (디오네 데코)": 36542000, "Cozy Slim (코지슬림)": 36641000, "Manor (매너)": 36762000, "Cozy (코지)": 37356000, "Chess (체스)": 38975000, "Cloud (클라우드)": 39358000, "Adjustable Back (어져스터블 백)": 41019000 }
+            },
+            "어져스터블 J6": {
+                "120*200": { "무헤드": 27053000, "Dione 디오네 (LYRA)": 29622000, "Dione(LYRA) Plus (디오네플러스)": 29699000, "Libra (리브러)": 29897000, "Dione portrait (디오네포트레이트)": 30062000, "Dione Décor (디오네 데코)": 30172000, "Cozy Slim (코지슬림)": 30425000, "Manor (매너)": 30425000, "Cozy (코지)": 31206000, "Chess (체스)": 32081000, "Cloud (클라우드)": 32372000, "Adjustable Back (어져스터블 백)": 34154000 },
+                "150*200": { "무헤드": 35356000, "Dione 디오네 (LYRA)": 38171000, "Dione(LYRA) Plus (디오네플러스)": 38309000, "Libra (리브러)": 38467000, "Dione portrait (디오네포트레이트)": 38573000, "Dione Décor (디오네 데코)": 38699000, "Cozy Slim (코지슬림)": 38974000, "Manor (매너)": 38974000, "Cozy (코지)": 39724000, "Chess (체스)": 40544000, "Cloud (클라우드)": 40843000, "Adjustable Back (어져스터블 백)": 42554000 },
+                "160*200": { "무헤드": 36871000, "Dione 디오네 (LYRA)": 39825000, "Dione(LYRA) Plus (디오네플러스)": 39968000, "Libra (리브러)": 40133000, "Dione portrait (디오네포트레이트)": 40243000, "Dione Décor (디오네 데코)": 40375000, "Cozy Slim (코지슬림)": 40661000, "Manor (매너)": 40661000, "Cozy (코지)": 41442000, "Chess (체스)": 42296000, "Cloud (클라우드)": 42608000, "Adjustable Back (어져스터블 백)": 44390000 },
+                "180*210": { "무헤드": 41211000, "Dione 디오네 (LYRA)": 44374000, "Dione(LYRA) Plus (디오네플러스)": 44407000, "Libra (리브러)": 44990000, "Dione portrait (디오네포트레이트)": 44792000, "Dione Décor (디오네 데코)": 45001000, "Cozy Slim (코지슬림)": 45210000, "Manor (매너)": 45133000, "Cozy (코지)": 45980000, "Chess (체스)": 47838000, "Cloud (클라우드)": 48213000, "Adjustable Back (어져스터블 백)": 49973000 },
+                "210*210": { "무헤드": 50488000, "Dione 디오네 (LYRA)": 53860000, "Dione(LYRA) Plus (디오네플러스)": 53915000, "Libra (리브러)": 54377000, "Dione portrait (디오네포트레이트)": 54487000, "Dione Décor (디오네 데코)": 54586000, "Cozy Slim (코지슬림)": 54696000, "Manor (매너)": 54828000, "Cozy (코지)": 55466000, "Chess (체스)": 57261000, "Cloud (클라우드)": 57644000, "Adjustable Back (어져스터블 백)": 59459000 }
+            }
+        };
+
+        // C4, C5, C6용 코지 헤드보드 단품 (무헤드 계산 백업용)
+        const cozyHeadboardPrices = {
+            "120*200": 4653000,
+            "160*200": 5071000,
+            "180*210": 5269000,
+            "210*210": 5478000
+        };
+
+        function Calculator() {
+            const [storeMode, setStoreMode] = useState('LOTTE_10');
+            const [totalAmount, setTotalAmount] = useState(0);
+            const [extraPrice, setExtraPrice] = useState(0);
+            const [brandDc, setBrandDc] = useState(25); // 기본할인 25% 초기화
+            const [addDc, setAddDc] = useState(0);
+            const [enuri, setEnuri] = useState(3);      // 에누리 3% 초기화
+            const [isDeductionMode, setIsDeductionMode] = useState(true);
+
+            // 모델 선택용 State
+            const [selectedType, setSelectedType] = useState('노르딕 J4');
+            const [selectedSize, setSelectedSize] = useState('160*200');
+            const [selectedModel, setSelectedModel] = useState('Cozy (코지)');
+
+            const [results, setResults] = useState({
+                brandFinalPrice: 0,
+                deduct: null,
+                noDeduct: null,
+                payWithDeduction: 0,
+                payWithoutDeduction: 0,
+                difference: 0,
+            });
+
+            const formatNum = (num) => Math.round(num || 0).toLocaleString('ko-KR');
+            const parseNum = (str) => Number(str.toString().replace(/[^0-9]/g, ''));
+
+            // 1. 카테고리/모델 변경 핸들러
+            const handleTypeChange = (e) => {
+                const type = e.target.value;
+                setSelectedType(type);
+                setSelectedSize('');
+                setSelectedModel('');
+                if (type === '직접 입력') setTotalAmount(0);
+                setExtraPrice(0);
+            };
+
+            const handleSizeChange = (e) => {
+                const size = e.target.value;
+                setSelectedSize(size);
+                setSelectedModel('');
+                setTotalAmount(0); // 사이즈 변경 시 초기화
+                setExtraPrice(0);
+            };
+
+            const handleModelChange = (e) => {
+                const model = e.target.value;
+                setSelectedModel(model);
+                
+                if (priceData[selectedType]) {
+                    // C라인 등 150사이즈 명시가 안된 경우 fallback (J라인은 명시되어 있으므로 자체 사용)
+                    const targetSize = priceData[selectedType][selectedSize] ? selectedSize : (selectedSize === "150*200" ? "160*200" : selectedSize);
+                    
+                    if (priceData[selectedType][targetSize]) {
+                        if (priceData[selectedType][targetSize][model]) {
+                            // 일반 모델 정상가 로드
+                            let val = priceData[selectedType][targetSize][model];
+                            // C라인 등 150 사이즈가 없어 160을 당겨쓴 경우 자동 200 차감
+                            if (!priceData[selectedType][selectedSize] && selectedSize === "150*200") {
+                                val -= 2000000;
+                            }
+                            setTotalAmount(val);
+                        } else if (model === '무헤드') {
+                            // C라인용 무헤드 자동계산 Fallback (J라인은 무헤드가 하드코딩 되어있어 위에서 걸림)
+                            let cozySetPrice = priceData[selectedType][targetSize]["Cozy (코지)"];
+                            let headboardPrice = cozyHeadboardPrices[targetSize] || 0;
+                            
+                            if (!priceData[selectedType][selectedSize] && selectedSize === "150*200") {
+                                cozySetPrice -= 2000000;
+                                headboardPrice = headboardPrice - 200000 + 500000;
+                                setTotalAmount(cozySetPrice - headboardPrice);
+                            } else {
+                                setTotalAmount(cozySetPrice - (headboardPrice - 500000));
+                            }
+                        }
+                    }
+                }
+            };
+
+            // 매장별 설정값 (현대 15+3 복구 포함)
+            const getStoreConfig = (mode) => {
+                if (mode === 'HYUNDAI_10') return { name: '압구정 현대 (10%)', levels: [30000000, 20000000, 10000000, 5000000, 3000000, 0], base: 0.1, extra: 0 };
+                if (mode === 'HYUNDAI_18') return { name: '압구정 현대 (15%+3%)', levels: [20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.15, extra: 0.03 };
+                return { name: '잠실 롯데 (10%)', levels: [30000000, 20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.1, extra: 0 };
+            };
+            const config = getStoreConfig(storeMode);
+
+            // 실결제액 사은품 연산 엔진
+            const calcReward = (realPayment, cfg) => {
+                const seg = cfg.levels.find(l => realPayment >= l) || 0;
+                const baseReward = seg * cfg.base;
+                const extraReward = seg * cfg.extra;
+                return { seg, base: baseReward, extra: extraReward, total: baseReward + extraReward };
+            };
+
+            const RewardDisplay = ({ reward }) => {
+                if (!reward || reward.total === 0) return <span>0 원</span>;
+                if (reward.extra > 0) {
+                    return (
+                        <div className="text-right flex flex-col items-end">
+                            <span className="font-bold">{formatNum(reward.total)} 원</span>
+                            <span className="text-xs text-gray-500 font-bold">(기본 {formatNum(reward.base)} + 추가 {formatNum(reward.extra)})</span>
+                        </div>
+                    );
+                }
+                return <span>{formatNum(reward.total)} 원</span>;
+            };
+
+            // 핵심 결제 시뮬레이터 (구간 하향 포기 로직 포함)
+            useEffect(() => {
+                const brandFinalPrice = (totalAmount + extraPrice) * (1 - brandDc / 100) * (1 - addDc / 100);
+                const enuriRate = enuri / 100;
+                const getTargetInput = (seg) => Math.ceil(seg / (1 - enuriRate));
+
+                // [A] 선차감 모드 시뮬레이션
+                let d_inputs = [0, 0, 0];
+                let d_reals = [0, 0, 0];
+                let d_rewards = [
+                    {total:0, base:0, extra:0, seg:0, isDropped: false}, 
+                    {total:0, base:0, extra:0, seg:0, isDropped: false}, 
+                    {total:0, base:0, extra:0, seg:0, isDropped: false}
+                ];
+                
+                let d_rem = brandFinalPrice;
+                for (let round = 0; round < 3; round++) {
+                    if (d_rem <= 0) break;
+                    let targetedSeg = 0, t = 0, r_total = 0, r_base = 0, r_extra = 0;
+
+                    for (let seg of config.levels.filter(l => l > 0)) {
+                        let req_input = getTargetInput(seg);
+                        let reward_total = seg * (config.base + config.extra);
+
+                        // 구간 하향 안전장치: 에누리 적용 시 허들 미달되면 과감히 하향
+                        if (d_rem >= req_input + reward_total) {
+                            targetedSeg = seg; t = req_input; r_total = reward_total;
+                            r_base = seg * config.base; r_extra = seg * config.extra;
+                            break;
+                        }
+                    }
+
+                    if (targetedSeg > 0) {
+                        d_inputs[round] = t + r_total;
+                        d_reals[round] = t * (1 - enuriRate);
+                        d_rewards[round] = { total: r_total, base: r_base, extra: r_extra, seg: targetedSeg, isDropped: false };
+                        d_rem -= (t + r_total);
+                    } else {
+                        d_inputs[round] = d_rem;
+                        d_reals[round] = d_rem * (1 - enuriRate);
+                        d_rewards[round] = { total: 0, base: 0, extra: 0, seg: 0, isDropped: d_rem > 0 };
+                        d_rem = 0;
+                    }
+                }
+
+                // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                if (d_inputs[2] > 0 && d_rewards[2].seg === 0) {
+                    d_inputs[1] += d_inputs[2];
+                    d_reals[1] += d_reals[2];
+                    d_inputs[2] = 0; d_reals[2] = 0;
+                    d_rewards[2].isDropped = false;
+                }
+                if (d_inputs[1] > 0 && d_rewards[1].seg === 0) {
+                    d_inputs[0] += d_inputs[1];
+                    d_reals[0] += d_reals[1];
+                    d_inputs[1] = 0; d_reals[1] = 0;
+                    d_rewards[1].isDropped = false;
+                }
+
+                // [B] 수령 모드 시뮬레이션
+                let n_inputs = [0, 0, 0];
+                let n_reals = [0, 0, 0];
+                let n_rewards = [{total:0, base:0, extra:0, seg:0}, {total:0, base:0, extra:0, seg:0}, {total:0, base:0, extra:0, seg:0}];
+
+                let n_rem = brandFinalPrice;
+                for (let round = 0; round < 3; round++) {
+                    if (n_rem <= 0) break;
+                    let targetedSeg = 0, t = 0, r_total = 0, r_base = 0, r_extra = 0;
+
+                    for (let seg of config.levels.filter(l => l > 0)) {
+                        let req_input = getTargetInput(seg);
+                        if (n_rem >= req_input) {
+                            targetedSeg = seg; t = req_input;
+                            r_total = seg * (config.base + config.extra);
+                            r_base = seg * config.base; r_extra = seg * config.extra;
+                            break;
+                        }
+                    }
+
+                    if (targetedSeg > 0) {
+                        n_inputs[round] = t;
+                        n_reals[round] = t * (1 - enuriRate);
+                        n_rewards[round] = { total: r_total, base: r_base, extra: r_extra, seg: targetedSeg };
+                        n_rem -= t;
+                    } else {
+                        n_inputs[round] = n_rem;
+                        n_reals[round] = n_rem * (1 - enuriRate);
+                        n_rewards[round] = { total: 0, base: 0, extra: 0, seg: 0 };
+                        n_rem = 0;
+                    }
+                }
+
+                // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                if (n_inputs[2] > 0 && n_rewards[2].seg === 0) {
+                    n_inputs[1] += n_inputs[2];
+                    n_reals[1] += n_reals[2];
+                    n_inputs[2] = 0; n_reals[2] = 0;
+                }
+                if (n_inputs[1] > 0 && n_rewards[1].seg === 0) {
+                    n_inputs[0] += n_inputs[1];
+                    n_reals[0] += n_reals[1];
+                    n_inputs[1] = 0; n_reals[1] = 0;
+                }
+
+                const totalDeductReward = d_rewards.reduce((sum, r) => sum + r.total, 0);
+                const totalNoDeductReward = n_rewards.reduce((sum, r) => sum + r.total, 0);
+
+                const payWithDeduction = d_reals.reduce((sum, val) => sum + val, 0);
+                const payWithoutDeduction = n_reals.reduce((sum, val) => sum + val, 0); // 수령시 상품권 차감 안 함 (순수 카드 결제액만 표기)
+                
+                // 실제 손익 갭 분석용 변수 유지
+                const netDeduct = payWithDeduction;
+                const netNoDeduct = payWithoutDeduction - totalNoDeductReward;
+                const difference = netDeduct - netNoDeduct;
+
+                setResults({
+                    brandFinalPrice,
+                    deduct: { installments: d_inputs.map((input, i) => ({ input, real: d_reals[i], reward: d_rewards[i] })), totalReward: totalDeductReward },
+                    noDeduct: { installments: n_inputs.map((input, i) => ({ input, real: n_reals[i], reward: n_rewards[i] })), totalReward: totalNoDeductReward },
+                    payWithDeduction, payWithoutDeduction, difference,
+                });
+
+            }, [storeMode, totalAmount, extraPrice, brandDc, addDc, enuri]);
+
+            // 사이즈 목록 생성
+            const displaySizes = (selectedType === '노르딕 C5' || selectedType === '노르딕 C6') 
+                ? ["160*200", "180*210"] : ["120*200", "150*200", "160*200", "180*210", "210*210"];
+
+            const activeData = isDeductionMode ? results.deduct : results.noDeduct;
+            if (!activeData) return null;
+            const activeCount = activeData.installments.filter(i => i.input > 0).length || 1;
+            const gridColsClass = activeCount === 1 ? 'md:grid-cols-1' : (activeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3');
+
+            // 모델 드롭다운 생성 (무헤드가 데이터에 있으면 중복 렌더링 방지)
+            const targetSizeForModels = priceData[selectedType]?.[selectedSize] ? selectedSize : (selectedSize === "150*200" ? "160*200" : selectedSize);
+            const availableModels = selectedSize && selectedType !== '직접 입력' && priceData[selectedType]?.[targetSizeForModels] 
+                ? Object.keys(priceData[selectedType][targetSizeForModels]) : [];
+            const hasMuhead = availableModels.includes("무헤드");
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 text-gray-800">
+                    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                        
+                        <div className="bg-gray-900 p-6 text-white text-center relative flex flex-col items-center justify-center">
+                            <h1 className="text-2xl font-bold tracking-tight">백화점 통합 계산기 26.1.2ver</h1>
+                            <p className="mt-2 text-gray-300 text-sm">노르딕 J6 및 체스(Chess) 사이즈별 정확한 오프라인 단가 적용</p>
+                            
+                            <button 
+                                onClick={() => {
+                                    const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = '백화점_통합_계산기_2026최신.html';
+                                    a.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                                className="mt-4 md:mt-0 md:absolute md:right-6 md:top-1/2 md:-translate-y-1/2 flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm border border-gray-500 cursor-pointer"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span>파일 다운로드</span>
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col lg:flex-row">
+                            {/* 왼쪽 패널 */}
+                            <div className="w-full lg:w-1/3 bg-gray-50 p-6 border-r border-gray-200">
+                                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">기본 정보 입력</h2>
+                                
+                                <div className="mb-6">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">백화점 프로모션</label>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => setStoreMode('LOTTE_10')} className={`w-full py-2 px-3 border rounded-lg text-sm font-medium transition-colors text-left flex justify-between items-center ${storeMode === 'LOTTE_10' ? 'radio-btn-active' : 'radio-btn-inactive hover:bg-gray-100'}`}>
+                                            <span>잠실 롯데</span><span className="text-xs opacity-80">10% 고정</span>
+                                        </button>
+                                        <button onClick={() => setStoreMode('HYUNDAI_10')} className={`w-full py-2 px-3 border rounded-lg text-sm font-medium transition-colors text-left flex justify-between items-center ${storeMode === 'HYUNDAI_10' ? 'radio-btn-active' : 'radio-btn-inactive hover:bg-gray-100'}`}>
+                                            <span>압구정 현대</span><span className="text-xs opacity-80">10% 사은</span>
+                                        </button>
+                                        <button onClick={() => setStoreMode('HYUNDAI_18')} className={`w-full py-2 px-3 border rounded-lg text-sm font-medium transition-colors text-left flex justify-between items-center ${storeMode === 'HYUNDAI_18' ? 'radio-btn-active' : 'radio-btn-inactive hover:bg-gray-100'}`}>
+                                            <span>압구정 현대</span><span className="text-xs opacity-80">15% + 3% 특별</span>
+                                        </button>
+                                    </div>
+                                    <div className="mt-3 p-3 bg-blue-50/50 rounded-lg text-sm text-gray-600 border border-blue-100">
+                                        <span className="font-bold text-blue-800 mr-2">사은 구간:</span>
+                                        {config.levels.filter(l => l > 0).sort((a, b) => a - b).map(l => (l / 10000).toLocaleString()).join(' / ')} <span className="text-xs text-gray-400">만원</span>
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">침대 라인업 선택</label>
+                                    <div className="flex flex-col gap-2">
+                                        <select value={selectedType} onChange={handleTypeChange} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+                                            <option value="직접 입력">직접 입력</option>
+                                            {Object.keys(priceData).map(type => <option key={type} value={type}>{type}</option>)}
+                                        </select>
+                                        <select value={selectedSize} onChange={handleSizeChange} disabled={selectedType === '직접 입력'} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400">
+                                            <option value="">사이즈 선택</option>
+                                            {selectedType !== '직접 입력' && displaySizes.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                        <select value={selectedModel} onChange={handleModelChange} disabled={!selectedSize || selectedSize === '사이즈 선택'} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400">
+                                            <option value="">헤드보드 선택</option>
+                                            {availableModels.map(model => (
+                                                <option key={model} value={model} className={model === '무헤드' ? 'font-bold text-blue-600 bg-blue-50' : ''}>
+                                                    {model === '무헤드' ? '무헤드 (매트리스+베이스)' : model}
+                                                </option>
+                                            ))}
+                                            {!hasMuhead && selectedSize && selectedSize !== '사이즈 선택' && (
+                                                <option value="무헤드" className="font-bold text-blue-600 bg-blue-50">무헤드 (매트리스+베이스)</option>
+                                            )}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">정상 총액 (원)</label>
+                                        <input type="text" value={formatNum(totalAmount)} onChange={(e) => setTotalAmount(parseNum(e.target.value))} disabled={selectedType !== '직접 입력'} className="w-full p-2.5 border border-gray-300 rounded-lg text-right font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">추가 금액 (옵션/배송비 등)</label>
+                                        <input type="text" value={extraPrice === 0 ? '' : formatNum(extraPrice)} onChange={(e) => setExtraPrice(parseNum(e.target.value))} placeholder="0" className="w-full p-2.5 border border-gray-300 rounded-lg text-right font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none" />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="w-1/2">
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">기본할인 (%)</label>
+                                            <input type="number" value={brandDc} onChange={(e) => setBrandDc(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                        </div>
+                                        <div className="w-1/2">
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">추가할인 (%)</label>
+                                            <input type="number" value={addDc} onChange={(e) => setAddDc(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">카드 에누리 (%)</label>
+                                        <input type="number" value={enuri} onChange={(e) => setEnuri(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                    </div>
+                                </div>
+                                <div className="mt-8 p-4 bg-gray-900 rounded-xl shadow-inner text-white">
+                                    <span className="block text-sm text-gray-400 font-semibold mb-1">브랜드 최종가 (선차감 전 원금)</span>
+                                    <span className="block text-2xl font-bold text-right text-yellow-400">{formatNum(results.brandFinalPrice)} 원</span>
+                                </div>
+                            </div>
+
+                            {/* 오른쪽 패널 */}
+                            <div className="w-full lg:w-2/3 p-6 bg-white">
+                                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 border-b border-gray-200 pb-3">
+                                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{config.name}</span>
+                                        분할 결제 가이드
+                                    </h2>
+                                    <div className="flex bg-gray-100 rounded-lg p-1 mt-3 sm:mt-0 shadow-sm border border-gray-200">
+                                        <button className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${isDeductionMode ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setIsDeductionMode(true)}>선차감 모드</button>
+                                        <button className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all ${!isDeductionMode ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setIsDeductionMode(false)}>수령 모드</button>
+                                    </div>
+                                </div>
+                                
+                                <div className={`grid gap-4 mb-8 grid-cols-1 ${gridColsClass}`}>
+                                    {activeData.installments.map((inst, index) => {
+                                        if (index > 0 && inst.input === 0) return null;
+                                        
+                                        const isLastActive = activeData.installments.findIndex((x, i) => i > index && x.input > 0) === -1;
+                                        const badgeText = index === 0 ? '최대구간 타겟' : (isLastActive ? '잔액 처리' : '추가 타겟');
+                                        
+                                        const theme = index === 0 
+                                            ? { border: 'border-blue-200', bg: 'bg-blue-500', text: 'text-blue-800', badge: 'bg-blue-50 border-blue-200 text-blue-700', rewardTxt: 'text-blue-700' }
+                                            : index === 1 
+                                                ? { border: 'border-green-200', bg: 'bg-green-500', text: 'text-green-800', badge: 'bg-green-50 border-green-200 text-green-700', rewardTxt: 'text-green-700' }
+                                                : { border: 'border-purple-200', bg: 'bg-purple-500', text: 'text-purple-800', badge: 'bg-purple-50 border-purple-200 text-purple-700', rewardTxt: 'text-purple-700' };
+
+                                        return (
+                                            <div key={index} className={`bg-white border-2 rounded-xl p-5 shadow-sm relative overflow-hidden ${theme.border}`}>
+                                                <div className={`absolute top-0 left-0 w-1.5 h-full ${theme.bg}`}></div>
+                                                <h3 className={`font-bold mb-4 flex justify-between items-center ${theme.text}`}>
+                                                    <span className="text-lg">{index + 1}회차 결제</span>
+                                                    <div className="flex gap-1.5 items-center">
+                                                        {isDeductionMode && inst.reward.seg === 0 && inst.reward.isDropped && (
+                                                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">구간 하향</span>
+                                                        )}
+                                                        <span className={`text-xs px-2.5 py-1 rounded-full border ${theme.badge}`}>{badgeText}</span>
+                                                    </div>
+                                                </h3>
+                                                <div className="space-y-3 text-sm">
+                                                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                        <span className="text-gray-500">포스 입력액</span>
+                                                        <span className="font-bold text-xl">{formatNum(inst.input)} 원</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                        <span className="text-gray-500">에누리 적용 후</span>
+                                                        <span className="font-medium text-gray-700">{formatNum(inst.real)} 원</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                        <span className="text-gray-500">사은 기준선</span>
+                                                        <span className="font-medium text-indigo-500">{inst.reward.seg > 0 ? `${formatNum(inst.reward.seg)} 원` : "사은 없음"}</span>
+                                                    </div>
+                                                    <div className={`flex justify-between items-center pt-2 ${theme.rewardTxt}`}>
+                                                        <span className="font-semibold">발생 상품권</span>
+                                                        <RewardDisplay reward={inst.reward} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2 mt-4">최종 정산 결과 비교</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 relative">
+                                        <h3 className="text-center font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2">선차감 진행 시</h3>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-500 text-sm">총 포스 입력액</span>
+                                                <span className="font-bold text-lg">{formatNum(results.deduct.installments.reduce((sum, i) => sum + i.input, 0))} 원</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-500 text-sm">상품권 선차감</span>
+                                                <span className="text-red-500 font-bold">- {formatNum(results.deduct.totalReward)} 원</span>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                <span className="text-gray-800 font-semibold">최종 구매가</span>
+                                                <div className="text-right">
+                                                    <span className="font-bold text-xl text-gray-900">{formatNum(results.payWithDeduction)} 원</span>
+                                                    {results.deduct.installments.some(inst => inst.reward.isDropped) && (
+                                                        <span className="block text-[9px] text-amber-600 font-bold">*구간미달 하향조정 적용</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5">
+                                        <h3 className="text-center font-bold text-indigo-800 mb-4 border-b border-indigo-200 pb-2">수령 진행 시 (추천)</h3>
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-indigo-600 text-sm">총 포스 입력액</span>
+                                                <span className="font-bold text-lg text-indigo-900">{formatNum(results.brandFinalPrice)} 원</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-indigo-600 text-sm">수령 상품권</span>
+                                                <span className="text-blue-600 font-bold">+ {formatNum(results.noDeduct.totalReward)} 원</span>
+                                            </div>
+                                            <div className="flex justify-between items-center pt-2 border-t border-indigo-200">
+                                                <span className="text-indigo-900 font-semibold">최종 결제액 (카드승인)</span>
+                                                <span className="font-bold text-xl text-indigo-900">{formatNum(results.payWithoutDeduction)} 원</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {results.difference > 0 && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center shadow-sm">
+                                        <p className="text-blue-900 text-sm leading-relaxed">
+                                            💡 고객님, 선차감으로 진행 시 결제액 부족으로 <strong>하위 사은 구간</strong>으로 밀려나게 됩니다.<br/>
+                                            정상 수령으로 결제하시면 <strong className="text-lg text-blue-700 bg-blue-100 px-2 py-0.5 rounded mt-1 inline-block">{formatNum(results.difference)} 원</strong>의 추가 절감 효과를 보실 수 있습니다!
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Calculator />);
+    </script>
+</body>
+</html>
