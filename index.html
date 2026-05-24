@@ -21,9 +21,9 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
-        // 2026 백화점 가격표 26.1.2ver
+        // 2026 백화점 가격표 마스터 데이터 (체스 및 노르딕 J6 추가, 150사이즈 예외금액 완벽 매핑)
         const priceData = {
             "노르딕 C4": {
                 "120*200": { "Dione portrait (디오네포트레이트)": 11363000, "Dione 디오네 (LYRA)": 11429000, "Dione(LYRA) Plus (디오네플러스)": 11528000, "Dione Décor (디오네 데코)": 11814000, "Cozy (코지)": 11968000 },
@@ -179,7 +179,7 @@
             const getStoreConfig = (mode) => {
                 if (mode === 'HYUNDAI_10') return { name: '압구정 현대 (10%)', levels: [30000000, 20000000, 10000000, 5000000, 3000000, 0], base: 0.1, extra: 0 };
                 if (mode === 'HYUNDAI_18') return { name: '압구정 현대 (15%+3%)', levels: [20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.15, extra: 0.03 };
-                return { name: '잠실 롯데 (10%)', levels: [30000000, 20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.1, extra: 0 };
+                return { name: '잠실/부산 롯데 (10%)', levels: [30000000, 20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.1, extra: 0 };
             };
             const config = getStoreConfig(storeMode);
 
@@ -204,14 +204,29 @@
                 return <span>{formatNum(reward.total)} 원</span>;
             };
 
-            // 핵심 결제 시뮬레이터 (구간 하향 포기 로직 포함)
+            // 핵심 결제 시뮬레이터 (선차감 결제금액 분해 로직 탑재)
             useEffect(() => {
                 const brandFinalPrice = (totalAmount + extraPrice) * (1 - brandDc / 100) * (1 - addDc / 100);
                 const enuriRate = enuri / 100;
-                const getTargetInput = (seg) => Math.ceil(seg / (1 - enuriRate));
+                
+                // ★ 고객 맞춤형 포스 입력액 자동 정렬 엔진
+                const getTargetInput = (seg) => {
+                    const sopTable = {
+                        5: { 1000000: 1060000, 2000000: 2110000, 3000000: 3160000, 5000000: 5270000, 10000000: 10530000, 15000000: 15800000, 20000000: 21100000, 30000000: 31650000 },
+                        7: { 1000000: 1080000, 2000000: 2160000, 3000000: 3230000, 5000000: 5380000, 10000000: 10760000, 15000000: 16130000, 20000000: 21550000, 30000000: 32300000 },
+                        10: { 1000000: 1120000, 2000000: 2230000, 3000000: 3340000, 5000000: 5560000, 10000000: 11120000, 15000000: 16670000, 20000000: 22250000, 30000000: 33350000 }
+                    };
+                    
+                    if (sopTable[enuri] && sopTable[enuri][seg]) {
+                        return sopTable[enuri][seg];
+                    }
+                    
+                    return Math.ceil((seg / (1 - enuriRate)) / 10000) * 10000;
+                };
 
                 // [A] 선차감 모드 시뮬레이션
                 let d_inputs = [0, 0, 0];
+                let d_cards = [0, 0, 0];
                 let d_reals = [0, 0, 0];
                 let d_rewards = [
                     {total:0, base:0, extra:0, seg:0, isDropped: false}, 
@@ -238,33 +253,38 @@
 
                     if (targetedSeg > 0) {
                         d_inputs[round] = t + r_total;
+                        d_cards[round] = t;
                         d_reals[round] = t * (1 - enuriRate);
                         d_rewards[round] = { total: r_total, base: r_base, extra: r_extra, seg: targetedSeg, isDropped: false };
                         d_rem -= (t + r_total);
                     } else {
                         d_inputs[round] = d_rem;
+                        d_cards[round] = d_rem;
                         d_reals[round] = d_rem * (1 - enuriRate);
                         d_rewards[round] = { total: 0, base: 0, extra: 0, seg: 0, isDropped: d_rem > 0 };
                         d_rem = 0;
                     }
                 }
 
-                // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                // 잔액 마감 구간 자동 합산
                 if (d_inputs[2] > 0 && d_rewards[2].seg === 0) {
                     d_inputs[1] += d_inputs[2];
+                    d_cards[1] += d_cards[2];
                     d_reals[1] += d_reals[2];
-                    d_inputs[2] = 0; d_reals[2] = 0;
+                    d_inputs[2] = 0; d_cards[2] = 0; d_reals[2] = 0;
                     d_rewards[2].isDropped = false;
                 }
                 if (d_inputs[1] > 0 && d_rewards[1].seg === 0) {
                     d_inputs[0] += d_inputs[1];
+                    d_cards[0] += d_cards[1];
                     d_reals[0] += d_reals[1];
-                    d_inputs[1] = 0; d_reals[1] = 0;
+                    d_inputs[1] = 0; d_cards[1] = 0; d_reals[1] = 0;
                     d_rewards[1].isDropped = false;
                 }
 
                 // [B] 수령 모드 시뮬레이션
                 let n_inputs = [0, 0, 0];
+                let n_cards = [0, 0, 0];
                 let n_reals = [0, 0, 0];
                 let n_rewards = [{total:0, base:0, extra:0, seg:0}, {total:0, base:0, extra:0, seg:0}, {total:0, base:0, extra:0, seg:0}];
 
@@ -285,44 +305,47 @@
 
                     if (targetedSeg > 0) {
                         n_inputs[round] = t;
+                        n_cards[round] = t;
                         n_reals[round] = t * (1 - enuriRate);
                         n_rewards[round] = { total: r_total, base: r_base, extra: r_extra, seg: targetedSeg };
                         n_rem -= t;
                     } else {
                         n_inputs[round] = n_rem;
+                        n_cards[round] = n_rem;
                         n_reals[round] = n_rem * (1 - enuriRate);
                         n_rewards[round] = { total: 0, base: 0, extra: 0, seg: 0 };
                         n_rem = 0;
                     }
                 }
 
-                // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                // 잔액 마감 구간 자동 합산
                 if (n_inputs[2] > 0 && n_rewards[2].seg === 0) {
                     n_inputs[1] += n_inputs[2];
+                    n_cards[1] += n_cards[2];
                     n_reals[1] += n_reals[2];
-                    n_inputs[2] = 0; n_reals[2] = 0;
+                    n_inputs[2] = 0; n_cards[2] = 0; n_reals[2] = 0;
                 }
                 if (n_inputs[1] > 0 && n_rewards[1].seg === 0) {
                     n_inputs[0] += n_inputs[1];
+                    n_cards[0] += n_cards[1];
                     n_reals[0] += n_reals[1];
-                    n_inputs[1] = 0; n_reals[1] = 0;
+                    n_inputs[1] = 0; n_cards[1] = 0; n_reals[1] = 0;
                 }
 
                 const totalDeductReward = d_rewards.reduce((sum, r) => sum + r.total, 0);
                 const totalNoDeductReward = n_rewards.reduce((sum, r) => sum + r.total, 0);
 
                 const payWithDeduction = d_reals.reduce((sum, val) => sum + val, 0);
-                const payWithoutDeduction = n_reals.reduce((sum, val) => sum + val, 0); // 수령시 상품권 차감 안 함 (순수 카드 결제액만 표기)
+                const payWithoutDeduction = n_reals.reduce((sum, val) => sum + val, 0); 
                 
-                // 실제 손익 갭 분석용 변수 유지
                 const netDeduct = payWithDeduction;
                 const netNoDeduct = payWithoutDeduction - totalNoDeductReward;
                 const difference = netDeduct - netNoDeduct;
 
                 setResults({
                     brandFinalPrice,
-                    deduct: { installments: d_inputs.map((input, i) => ({ input, real: d_reals[i], reward: d_rewards[i] })), totalReward: totalDeductReward },
-                    noDeduct: { installments: n_inputs.map((input, i) => ({ input, real: n_reals[i], reward: n_rewards[i] })), totalReward: totalNoDeductReward },
+                    deduct: { installments: d_inputs.map((input, i) => ({ input, cardSwipe: d_cards[i], real: d_reals[i], reward: d_rewards[i] })), totalReward: totalDeductReward },
+                    noDeduct: { installments: n_inputs.map((input, i) => ({ input, cardSwipe: n_cards[i], real: n_reals[i], reward: n_rewards[i] })), totalReward: totalNoDeductReward },
                     payWithDeduction, payWithoutDeduction, difference,
                 });
 
@@ -337,7 +360,6 @@
             const activeCount = activeData.installments.filter(i => i.input > 0).length || 1;
             const gridColsClass = activeCount === 1 ? 'md:grid-cols-1' : (activeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3');
 
-            // 모델 드롭다운 생성 (무헤드가 데이터에 있으면 중복 렌더링 방지)
             const targetSizeForModels = priceData[selectedType]?.[selectedSize] ? selectedSize : (selectedSize === "150*200" ? "160*200" : selectedSize);
             const availableModels = selectedSize && selectedType !== '직접 입력' && priceData[selectedType]?.[targetSizeForModels] 
                 ? Object.keys(priceData[selectedType][targetSizeForModels]) : [];
@@ -348,7 +370,7 @@
                     <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                         
                         <div className="bg-gray-900 p-6 text-white text-center relative flex flex-col items-center justify-center">
-                            <h1 className="text-2xl font-bold tracking-tight">백화점 통합 계산기 26.1.2ver</h1>
+                            <h1 className="text-2xl font-bold tracking-tight">백화점 통합 계산기 (2026 J-Line 탑재)</h1>
                             <p className="mt-2 text-gray-300 text-sm">노르딕 J6 및 체스(Chess) 사이즈별 정확한 오프라인 단가 적용</p>
                             
                             <button 
@@ -388,7 +410,7 @@
                                         </button>
                                     </div>
                                     <div className="mt-3 p-3 bg-blue-50/50 rounded-lg text-sm text-gray-600 border border-blue-100">
-                                        <span className="font-bold text-blue-800 mr-2">사은 구간:</span>
+                                        <span className="font-bold text-blue-800 mr-2">허들:</span>
                                         {config.levels.filter(l => l > 0).sort((a, b) => a - b).map(l => (l / 10000).toLocaleString()).join(' / ')} <span className="text-xs text-gray-400">만원</span>
                                     </div>
                                 </div>
@@ -486,21 +508,38 @@
                                                         <span className={`text-xs px-2.5 py-1 rounded-full border ${theme.badge}`}>{badgeText}</span>
                                                     </div>
                                                 </h3>
-                                                <div className="space-y-3 text-sm">
-                                                    <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                                        <span className="text-gray-500">포스 입력액</span>
-                                                        <span className="font-bold text-xl">{formatNum(inst.input)} 원</span>
+                                                
+                                                <div className="space-y-2 text-sm mt-2">
+                                                    {isDeductionMode && inst.reward.total > 0 ? (
+                                                        <>
+                                                            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                                                <span className="text-gray-500 font-bold">결제 대상 원금</span>
+                                                                <span className="font-bold text-lg">{formatNum(inst.input)} 원</span>
+                                                            </div>
+                                                            <div className="flex justify-between items-center border-b border-gray-100 pb-2 px-2 bg-red-50/50 rounded-md mt-1 mb-1">
+                                                                <span className="text-red-500 text-xs font-bold">↳ 상품권 선차감</span>
+                                                                <span className="font-bold text-red-600 text-sm">- {formatNum(inst.reward.total)} 원</span>
+                                                            </div>
+                                                        </>
+                                                    ) : null}
+                                                    
+                                                    <div className="flex justify-between items-center border-b border-gray-100 pb-2 pt-1">
+                                                        <span className="text-blue-600 font-black">포스 입력액 (카드승인)</span>
+                                                        <span className="font-black text-xl text-blue-700">{formatNum(inst.cardSwipe)} 원</span>
                                                     </div>
+                                                    
                                                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                                        <span className="text-gray-500">에누리 적용 후</span>
-                                                        <span className="font-medium text-gray-700">{formatNum(inst.real)} 원</span>
+                                                        <span className="text-gray-600 font-bold">에누리 적용 후 (청구액)</span>
+                                                        <span className="font-black text-gray-800 text-lg">{formatNum(inst.real)} 원</span>
                                                     </div>
+                                                    
                                                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                                        <span className="text-gray-500">사은 기준선</span>
-                                                        <span className="font-medium text-indigo-500">{inst.reward.seg > 0 ? `${formatNum(inst.reward.seg)} 원` : "사은 없음"}</span>
+                                                        <span className="text-gray-500">사은품 기준선</span>
+                                                        <span className="font-bold text-indigo-500">{inst.reward.seg > 0 ? `${formatNum(inst.reward.seg)} 원` : "사은 없음"}</span>
                                                     </div>
+                                                    
                                                     <div className={`flex justify-between items-center pt-2 ${theme.rewardTxt}`}>
-                                                        <span className="font-semibold">발생 상품권</span>
+                                                        <span className="font-bold">발생 상품권</span>
                                                         <RewardDisplay reward={inst.reward} />
                                                     </div>
                                                 </div>
@@ -515,15 +554,19 @@
                                         <h3 className="text-center font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2">선차감 진행 시</h3>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-gray-500 text-sm">총 포스 입력액</span>
-                                                <span className="font-bold text-lg">{formatNum(results.deduct.installments.reduce((sum, i) => sum + i.input, 0))} 원</span>
+                                                <span className="text-gray-500 text-sm">브랜드 최종 원금</span>
+                                                <span className="font-bold text-lg">{formatNum(results.brandFinalPrice)} 원</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-gray-500 text-sm">상품권 선차감</span>
+                                                <span className="text-gray-500 text-sm">상품권 선차감액</span>
                                                 <span className="text-red-500 font-bold">- {formatNum(results.deduct.totalReward)} 원</span>
                                             </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-blue-600 text-sm font-bold">총 카드 승인액</span>
+                                                <span className="font-bold text-lg text-blue-700">{formatNum(results.deduct.installments.reduce((sum, i) => sum + i.cardSwipe, 0))} 원</span>
+                                            </div>
                                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                                <span className="text-gray-800 font-semibold">최종 구매가</span>
+                                                <span className="text-gray-800 font-semibold">고객 최종 청구액</span>
                                                 <div className="text-right">
                                                     <span className="font-bold text-xl text-gray-900">{formatNum(results.payWithDeduction)} 원</span>
                                                     {results.deduct.installments.some(inst => inst.reward.isDropped) && (
@@ -537,7 +580,7 @@
                                         <h3 className="text-center font-bold text-indigo-800 mb-4 border-b border-indigo-200 pb-2">수령 진행 시 (추천)</h3>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-indigo-600 text-sm">총 포스 입력액</span>
+                                                <span className="text-indigo-600 text-sm">총 카드 승인액</span>
                                                 <span className="font-bold text-lg text-indigo-900">{formatNum(results.brandFinalPrice)} 원</span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -545,7 +588,7 @@
                                                 <span className="text-blue-600 font-bold">+ {formatNum(results.noDeduct.totalReward)} 원</span>
                                             </div>
                                             <div className="flex justify-between items-center pt-2 border-t border-indigo-200">
-                                                <span className="text-indigo-900 font-semibold">최종 결제액 (카드승인)</span>
+                                                <span className="text-indigo-900 font-semibold">최종 결제액 (카드청구)</span>
                                                 <span className="font-bold text-xl text-indigo-900">{formatNum(results.payWithoutDeduction)} 원</span>
                                             </div>
                                         </div>
@@ -572,3 +615,5 @@
     </script>
 </body>
 </html>
+
+한번 더 수정한 코드인데 업데이트 해주고 아까처럼 테스트하게 띄워저ㅜ
