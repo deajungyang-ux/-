@@ -122,6 +122,11 @@
 
             const formatNum = (num) => Math.round(num || 0).toLocaleString('ko-KR');
             const parseNum = (str) => Number(str.toString().replace(/[^0-9]/g, ''));
+            const percentNum = (value) => Number(value === '' ? 0 : value);
+            const handlePercentChange = (setter) => (e) => {
+                const value = e.target.value;
+                setter(value === '' ? '' : Number(value));
+            };
 
             // 1. 카테고리/모델 변경 핸들러
             const handleTypeChange = (e) => {
@@ -207,8 +212,11 @@
 
             // 핵심 결제 시뮬레이터 (구간 하향 포기 로직 포함)
             useEffect(() => {
-                const brandFinalPrice = (totalAmount + extraPrice) * (1 - brandDc / 100) * (1 - addDc / 100);
-                const enuriRate = enuri / 100;
+                const brandDcNum = percentNum(brandDc);
+                const addDcNum = percentNum(addDc);
+                const enuriNum = percentNum(enuri);
+                const brandFinalPrice = (totalAmount + extraPrice) * (1 - brandDcNum / 100) * (1 - addDcNum / 100);
+                const enuriRate = enuriNum / 100;
                 // 고객 맞춤형 포스 입력액 자동 정렬 엔진
                 const getTargetInput = (seg) => {
                     const sopTable = {
@@ -244,8 +252,8 @@
                         },
                     };
 
-                    if (sopTable[enuri] && sopTable[enuri][seg]) {
-                        return sopTable[enuri][seg];
+                    if (sopTable[enuriNum] && sopTable[enuriNum][seg]) {
+                        return sopTable[enuriNum][seg];
                     }
 
                     return Math.ceil((seg / (1 - enuriRate)) / 10000) * 10000;
@@ -385,12 +393,15 @@
 
             const activeData = isDeductionMode ? results.deduct : results.noDeduct;
             if (!activeData) return null;
+            const brandDcNum = percentNum(brandDc);
+            const addDcNum = percentNum(addDc);
+            const enuriNum = percentNum(enuri);
             const activeCount = activeData.installments.filter(i => i.input > 0).length || 1;
             const gridColsClass = activeCount === 1 ? 'md:grid-cols-1' : (activeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3');
             const quoteOriginal = totalAmount + extraPrice;
-            const quoteBrandDiscount = quoteOriginal * (brandDc / 100);
+            const quoteBrandDiscount = quoteOriginal * (brandDcNum / 100);
             const quoteAfterBrand = quoteOriginal - quoteBrandDiscount;
-            const quoteAddDiscount = quoteAfterBrand * (addDc / 100);
+            const quoteAddDiscount = quoteAfterBrand * (addDcNum / 100);
             const activeCardTotal = activeData.installments.reduce((sum, inst) => sum + (inst.cardSwipe || inst.input || 0), 0);
             const activeChargeTotal = isDeductionMode ? results.payWithDeduction : results.payWithoutDeduction;
             const activeEnuriDiscount = Math.max(0, activeCardTotal - activeChargeTotal);
@@ -492,16 +503,16 @@
                                     <div className="flex gap-2">
                                         <div className="w-1/2">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">기본할인 (%)</label>
-                                            <input type="number" value={brandDc} onChange={(e) => setBrandDc(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                            <input type="number" value={brandDc} onChange={handlePercentChange(setBrandDc)} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
                                         </div>
                                         <div className="w-1/2">
                                             <label className="block text-sm font-medium text-gray-600 mb-1">추가할인 (%)</label>
-                                            <input type="number" value={addDc} onChange={(e) => setAddDc(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                            <input type="number" value={addDc} onChange={handlePercentChange(setAddDc)} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-600 mb-1">카드 에누리 (%)</label>
-                                        <input type="number" value={enuri} onChange={(e) => setEnuri(Number(e.target.value))} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
+                                        <input type="number" value={enuri} onChange={handlePercentChange(setEnuri)} className="w-full p-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-blue-500 outline-none" />
                                     </div>
                                 </div>
                                 <div className="mt-8 p-4 bg-gray-900 rounded-xl shadow-inner text-white">
@@ -595,7 +606,7 @@
                                             <span className="font-black text-gray-900">{formatNum(quoteOriginal)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                            <span className="text-gray-500 font-bold">기본할인 ({brandDc}%)</span>
+                                            <span className="text-gray-500 font-bold">기본할인 ({brandDcNum}%)</span>
                                             <span className="font-bold text-red-500">- {formatNum(quoteBrandDiscount)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
@@ -603,7 +614,7 @@
                                             <span className="font-bold text-gray-800">{formatNum(quoteAfterBrand)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                            <span className="text-gray-500 font-bold">추가할인 ({addDc}%)</span>
+                                            <span className="text-gray-500 font-bold">추가할인 ({addDcNum}%)</span>
                                             <span className="font-bold text-red-500">- {formatNum(quoteAddDiscount)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
@@ -615,7 +626,7 @@
                                             <span className="font-bold text-gray-800">{formatNum(activeCardTotal)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
-                                            <span className="text-gray-500 font-bold">카드 에누리 ({enuri}%)</span>
+                                            <span className="text-gray-500 font-bold">카드 에누리 ({enuriNum}%)</span>
                                             <span className="font-bold text-red-500">- {formatNum(activeEnuriDiscount)} 원</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-gray-100 pb-2">
