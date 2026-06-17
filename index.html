@@ -387,6 +387,14 @@
             if (!activeData) return null;
             const activeCount = activeData.installments.filter(i => i.input > 0).length || 1;
             const gridColsClass = activeCount === 1 ? 'md:grid-cols-1' : (activeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3');
+            const quoteOriginal = totalAmount + extraPrice;
+            const quoteBrandDiscount = quoteOriginal * (brandDc / 100);
+            const quoteAfterBrand = quoteOriginal - quoteBrandDiscount;
+            const quoteAddDiscount = quoteAfterBrand * (addDc / 100);
+            const activeCardTotal = activeData.installments.reduce((sum, inst) => sum + (inst.cardSwipe || inst.input || 0), 0);
+            const activeChargeTotal = isDeductionMode ? results.payWithDeduction : results.payWithoutDeduction;
+            const activeEnuriDiscount = Math.max(0, activeCardTotal - activeChargeTotal);
+            const activeModeLabel = isDeductionMode ? '선차감 기준' : '수령 기준';
 
             // 모델 드롭다운 생성 (무헤드가 데이터에 있으면 중복 렌더링 방지)
             const targetSizeForModels = priceData[selectedType]?.[selectedSize] ? selectedSize : (selectedSize === "150*200" ? "160*200" : selectedSize);
@@ -577,6 +585,45 @@
                                             </div>
                                         );
                                     })}
+                                </div>
+
+                                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2 mt-4">견적서 할인 내역</h2>
+                                <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">정상 총액</span>
+                                            <span className="font-black text-gray-900">{formatNum(quoteOriginal)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">기본할인 ({brandDc}%)</span>
+                                            <span className="font-bold text-red-500">- {formatNum(quoteBrandDiscount)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">기본할인 적용가</span>
+                                            <span className="font-bold text-gray-800">{formatNum(quoteAfterBrand)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">추가할인 ({addDc}%)</span>
+                                            <span className="font-bold text-red-500">- {formatNum(quoteAddDiscount)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-blue-600 font-black">브랜드 최종가</span>
+                                            <span className="font-black text-blue-700">{formatNum(results.brandFinalPrice)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">카드 승인액 ({activeModeLabel})</span>
+                                            <span className="font-bold text-gray-800">{formatNum(activeCardTotal)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-500 font-bold">카드 에누리 ({enuri}%)</span>
+                                            <span className="font-bold text-red-500">- {formatNum(activeEnuriDiscount)} 원</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                            <span className="text-gray-900 font-black">에누리 적용 후 청구액</span>
+                                            <span className="font-black text-xl text-gray-900">{formatNum(activeChargeTotal)} 원</span>
+                                        </div>
+                                    </div>
+                                    <p className="mt-3 text-xs text-gray-400 font-bold text-right">* 카드 승인액과 에누리 할인액은 현재 선택한 {activeModeLabel}으로 표시됩니다.</p>
                                 </div>
 
                                 <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2 mt-4">최종 정산 결과 비교</h2>
