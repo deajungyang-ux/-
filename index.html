@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
     <!-- Babel (CDN) for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" crossorigin="anonymous"></script>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f9fafb; }
         .radio-btn-active { background-color: #2563eb; color: white; border-color: #2563eb; }
@@ -20,7 +20,7 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script type="text/babel" data-presets="env,react">
         const { useState, useEffect, useMemo } = React;
 
         // 2026 백화점 가격표 26.1.2ver
