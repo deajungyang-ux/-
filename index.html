@@ -122,7 +122,11 @@
 
             const formatNum = (num) => Math.round(num || 0).toLocaleString('ko-KR');
             const parseNum = (str) => Number(str.toString().replace(/[^0-9]/g, ''));
-            const percentNum = (value) => Number(value === '' ? 0 : value);
+            const percentNum = (value) => {
+                const num = Number(value === '' ? 0 : value);
+                return Number.isFinite(num) ? num : 0;
+            };
+            const clampPercent = (value, max = 100) => Math.min(Math.max(percentNum(value), 0), max);
             const handlePercentChange = (setter) => (e) => {
                 const value = e.target.value;
                 setter(value === '' ? '' : Number(value));
@@ -212,9 +216,9 @@
 
             // 핵심 결제 시뮬레이터 (구간 하향 포기 로직 포함)
             useEffect(() => {
-                const brandDcNum = percentNum(brandDc);
-                const addDcNum = percentNum(addDc);
-                const enuriNum = percentNum(enuri);
+                const brandDcNum = clampPercent(brandDc);
+                const addDcNum = clampPercent(addDc);
+                const enuriNum = clampPercent(enuri, 99.99);
                 const brandFinalPrice = (totalAmount + extraPrice) * (1 - brandDcNum / 100) * (1 - addDcNum / 100);
                 const enuriRate = enuriNum / 100;
                 // 고객 맞춤형 포스 입력액 자동 정렬 엔진
@@ -302,6 +306,15 @@
                 }
 
                 // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                if (d_rem > 0) {
+                    const lastActiveIndex = d_inputs.reduce((last, input, i) => input > 0 ? i : last, -1);
+                    const targetIndex = lastActiveIndex >= 0 ? lastActiveIndex : 0;
+                    d_inputs[targetIndex] += d_rem;
+                    d_cards[targetIndex] += d_rem;
+                    d_reals[targetIndex] += d_rem * (1 - enuriRate);
+                    d_rem = 0;
+                }
+
                 if (d_inputs[2] > 0 && d_rewards[2].seg === 0) {
                     d_inputs[1] += d_inputs[2];
                     d_cards[1] += d_cards[2];
@@ -354,6 +367,15 @@
                 }
 
                 // 잔액 마감 구간(seg=0) 하위 회차로 합산 (결제 편의성: 3회차 -> 2회차, 2회차 -> 1회차)
+                if (n_rem > 0) {
+                    const lastActiveIndex = n_inputs.reduce((last, input, i) => input > 0 ? i : last, -1);
+                    const targetIndex = lastActiveIndex >= 0 ? lastActiveIndex : 0;
+                    n_inputs[targetIndex] += n_rem;
+                    n_cards[targetIndex] += n_rem;
+                    n_reals[targetIndex] += n_rem * (1 - enuriRate);
+                    n_rem = 0;
+                }
+
                 if (n_inputs[2] > 0 && n_rewards[2].seg === 0) {
                     n_inputs[1] += n_inputs[2];
                     n_cards[1] += n_cards[2];
@@ -393,9 +415,9 @@
 
             const activeData = isDeductionMode ? results.deduct : results.noDeduct;
             if (!activeData) return null;
-            const brandDcNum = percentNum(brandDc);
-            const addDcNum = percentNum(addDc);
-            const enuriNum = percentNum(enuri);
+            const brandDcNum = clampPercent(brandDc);
+            const addDcNum = clampPercent(addDc);
+            const enuriNum = clampPercent(enuri, 99.99);
             const activeCount = activeData.installments.filter(i => i.input > 0).length || 1;
             const gridColsClass = activeCount === 1 ? 'md:grid-cols-1' : (activeCount === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3');
             const quoteOriginal = totalAmount + extraPrice;
