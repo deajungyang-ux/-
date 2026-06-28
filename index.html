@@ -188,7 +188,7 @@
             const getStoreConfig = (mode) => {
                 if (mode === 'HYUNDAI_10') return { name: '압구정 현대 (10%)', levels: [30000000, 20000000, 10000000, 5000000, 3000000, 0], base: 0.1, extra: 0 };
                 if (mode === 'HYUNDAI_18') return { name: '압구정 현대 (15%+3%)', levels: [30000000, 20000000, 10000000, 5000000, 3000000, 0], base: 0.15, extra: 0.03 };
-                if (mode === 'LOTTE_12') return { name: '잠실 롯데 (10%+3%)', levels: [10000000, 5000000, 3000000, 2000000, 0], base: 0.1, extra: 0.03 };
+                if (mode === 'LOTTE_12') return { name: '잠실 롯데 (13%)', levels: [10000000, 5000000, 3000000, 2000000, 0], base: 0.13, extra: 0 };
                 return { name: '잠실 롯데 (10%)', levels: [30000000, 20000000, 15000000, 10000000, 5000000, 3000000, 2000000, 0], base: 0.1, extra: 0 };
             };
             const config = getStoreConfig(storeMode);
@@ -473,7 +473,7 @@
                                             <span>잠실 롯데</span><span className="text-xs opacity-80">10% 고정</span>
                                         </button>
                                         <button onClick={() => setStoreMode('LOTTE_12')} className={`w-full py-2 px-3 border rounded-lg text-sm font-medium transition-colors text-left flex justify-between items-center ${storeMode === 'LOTTE_12' ? 'radio-btn-active' : 'radio-btn-inactive hover:bg-gray-100'}`}>
-                                            <span>잠실 롯데</span><span className="text-xs opacity-80">10% + 3% 특별</span>
+                                            <span>잠실 롯데</span><span className="text-xs opacity-80">13% 특별</span>
                                         </button>
                                         <button onClick={() => setStoreMode('HYUNDAI_10')} className={`w-full py-2 px-3 border rounded-lg text-sm font-medium transition-colors text-left flex justify-between items-center ${storeMode === 'HYUNDAI_10' ? 'radio-btn-active' : 'radio-btn-inactive hover:bg-gray-100'}`}>
                                             <span>압구정 현대</span><span className="text-xs opacity-80">10% 사은</span>
