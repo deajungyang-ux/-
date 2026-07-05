@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +97,38 @@
             "210*210": 5478000
         };
 
+        // 단품 정상가 데이터 (헤드보드 / 토퍼)
+        const singleProductPrices = {
+            headboard: {
+                label: "헤드보드 선택",
+                defaultProduct: "코지",
+                products: {
+                    "포트레이트": {"120*200": 3509000, "150*200": 3717000, "160*200": 3872000, "180*210": 4081000, "210*210": 4499000},
+                    "디오네": {"120*200": 3069000, "150*200": 3315000, "160*200": 3454000, "180*210": 3663000, "210*210": 3872000},
+                    "디오네플러스": {"120*200": 3146000, "150*200": 3453000, "160*200": 3597000, "180*210": 3696000, "210*210": 3927000},
+                    "디오네데코": {"120*200": 3619000, "150*200": 3843000, "160*200": 4004000, "180*210": 4290000, "210*210": 4598000},
+                    "코지": {"120*200": 4653000, "150*200": 4868000, "160*200": 5071000, "180*210": 5269000, "210*210": 5478000},
+                    "코지슬림": {"120*200": 3872000, "150*200": 4118000, "160*200": 4290000, "180*210": 4499000, "210*210": 4708000},
+                    "리브러": {"120*200": 3344000, "150*200": 3611000, "160*200": 3762000, "180*210": 4279000, "210*210": 4389000},
+                    "매너": {"120*200": 3872000, "150*200": 4118000, "160*200": 4290000, "180*210": 4422000, "210*210": 4840000},
+                    "클라우드": {"120*200": 5819000, "150*200": 5987000, "160*200": 6237000, "180*210": 7502000, "210*210": 7656000},
+                    "어져스터블백": {"120*200": 7601000, "150*200": 7698000, "160*200": 8019000, "180*210": 9262000, "210*210": 9471000},
+                    "체스": {"120*200": 5528000, "150*200": 5688000, "160*200": 5925000, "180*210": 7127000, "210*210": 7273000}
+                }
+            },
+            topper: {
+                label: "토퍼 선택",
+                defaultProduct: "Topper1",
+                products: {
+                    "Topper1": {"120*200": 2079000, "150*200": 2200000, "160*200": 2255000, "180*210": 2629000, "210*210": 2838000},
+                    "Topper3": {"120*200": 3190000, "150*200": 3645000, "160*200": 3861000, "180*210": 4477000, "210*210": 5236000},
+                    "TempSmart": {"120*200": 4026000, "150*200": 4601000, "160*200": 4810000, "180*210": 5599000, "210*210": 6435000},
+                    "Star Rose": {"120*200": 4268000, "150*200": 5077000, "160*200": 5236000, "180*210": 6149000, "210*210": 7073000},
+                    "Optima": {"120*200": 4631000, "150*200": 5292000, "160*200": 5368000, "180*210": 6512000, "210*210": 7436000}
+                }
+            }
+        };
+
         function Calculator() {
             const [storeMode, setStoreMode] = useState('LOTTE_10');
             const [totalAmount, setTotalAmount] = useState(0);
@@ -105,6 +137,11 @@
             const [addDc, setAddDc] = useState(0);
             const [enuri, setEnuri] = useState(3);      // 에누리 3% 초기화
             const [isDeductionMode, setIsDeductionMode] = useState(true);
+            const [isSinglePanelOpen, setIsSinglePanelOpen] = useState(false);
+            const [singleType, setSingleType] = useState('headboard');
+            const [singleProduct, setSingleProduct] = useState(singleProductPrices.headboard.defaultProduct);
+            const [singleSize, setSingleSize] = useState('160*200');
+            const [singleAppliedText, setSingleAppliedText] = useState('');
 
             // 모델 선택용 State
             const [selectedType, setSelectedType] = useState('노르딕 J4');
@@ -182,6 +219,28 @@
                         }
                     }
                 }
+            };
+
+            const handleSingleTypeChange = (type) => {
+                setSingleType(type);
+                setSingleProduct(singleProductPrices[type].defaultProduct);
+                setSingleSize('160*200');
+            };
+
+            const applySingleProduct = () => {
+                const data = singleProductPrices[singleType];
+                const price = data.products[singleProduct]?.[singleSize] || 0;
+                const typeText = singleType === 'headboard' ? '헤드보드' : '토퍼';
+
+                setSelectedType('직접 입력');
+                setSelectedSize('');
+                setSelectedModel('');
+                setTotalAmount(price);
+                setExtraPrice(0);
+                setBrandDc(0);
+                setAddDc(0);
+                setSingleAppliedText(`${typeText} ${singleProduct} ${singleSize} 정상가 적용`);
+                setIsSinglePanelOpen(false);
             };
 
             // 매장별 설정값
@@ -443,6 +502,13 @@
                             <h1 className="text-2xl font-bold tracking-tight">2026 백화점 통합 계산기</h1>
                             <p className="mt-2 text-gray-300 text-sm">노르딕 J6 및 체스(Chess) 사이즈별 정확한 오프라인 단가 적용</p>
                             
+                            <button
+                                onClick={() => setIsSinglePanelOpen(true)}
+                                className="mt-4 md:mt-0 md:absolute md:left-6 md:top-1/2 md:-translate-y-1/2 flex items-center gap-1.5 bg-yellow-400 hover:bg-yellow-300 text-gray-950 px-3 py-2 rounded-lg text-sm font-black transition-colors shadow-sm border border-yellow-300 cursor-pointer"
+                            >
+                                <span>단품 가격표</span>
+                            </button>
+
                             <button 
                                 onClick={() => {
                                     const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
@@ -541,6 +607,11 @@
                                     <span className="block text-sm text-gray-400 font-semibold mb-1">브랜드 최종가 (선차감 전 원금)</span>
                                     <span className="block text-2xl font-bold text-right text-yellow-400">{formatNum(results.brandFinalPrice)} 원</span>
                                 </div>
+                                {singleAppliedText && (
+                                    <div className="mt-3 p-3 bg-yellow-50 rounded-lg text-sm text-yellow-900 border border-yellow-200 font-bold">
+                                        {singleAppliedText}
+                                    </div>
+                                )}
                             </div>
 
                             {/* 오른쪽 패널 */}
@@ -717,6 +788,115 @@
                             </div>
                         </div>
                     </div>
+
+                    {isSinglePanelOpen && (
+                        <div className="fixed inset-0 z-50 flex justify-end">
+                            <button
+                                type="button"
+                                aria-label="단품 가격표 닫기"
+                                onClick={() => setIsSinglePanelOpen(false)}
+                                className="absolute inset-0 bg-gray-950/40 cursor-default"
+                            />
+                            <aside className="relative z-10 h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 flex flex-col">
+                                <div className="p-5 bg-gray-50 border-b border-gray-200 flex items-start justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-black text-gray-900">단품 가격표</h2>
+                                        <p className="mt-1 text-sm text-gray-500 font-bold">헤드보드/토퍼 정상가를 계산기에 바로 적용합니다.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsSinglePanelOpen(false)}
+                                        className="w-9 h-9 rounded-lg border border-gray-300 bg-white text-gray-600 font-black hover:bg-gray-100"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+
+                                <div className="p-5 overflow-y-auto">
+                                    <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 border border-gray-200 rounded-lg mb-5">
+                                        <button
+                                            onClick={() => handleSingleTypeChange('headboard')}
+                                            className={`py-2 rounded-md text-sm font-black transition-all ${singleType === 'headboard' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            헤드보드
+                                        </button>
+                                        <button
+                                            onClick={() => handleSingleTypeChange('topper')}
+                                            className={`py-2 rounded-md text-sm font-black transition-all ${singleType === 'topper' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            토퍼
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">{singleProductPrices[singleType].label}</label>
+                                            <select
+                                                value={singleProduct}
+                                                onChange={(e) => setSingleProduct(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                            >
+                                                {Object.keys(singleProductPrices[singleType].products).map(name => (
+                                                    <option key={name} value={name}>{name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">사이즈 선택</label>
+                                            <select
+                                                value={singleSize}
+                                                onChange={(e) => setSingleSize(e.target.value)}
+                                                className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                            >
+                                                {["120*200", "150*200", "160*200", "180*210", "210*210"].map(size => (
+                                                    <option key={size} value={size}>{size}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 p-4 bg-gray-900 rounded-xl text-white">
+                                        <span className="block text-sm text-gray-400 font-bold">선택 정상가</span>
+                                        <strong className="block mt-2 text-right text-2xl text-yellow-400 font-black">
+                                            {formatNum(singleProductPrices[singleType].products[singleProduct]?.[singleSize] || 0)} 원
+                                        </strong>
+                                    </div>
+
+                                    <button
+                                        onClick={applySingleProduct}
+                                        className="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-black transition-colors"
+                                    >
+                                        이 금액으로 계산하기
+                                    </button>
+
+                                    <div className="mt-5 border border-gray-200 rounded-xl overflow-auto max-h-80">
+                                        <table className="w-full text-xs">
+                                            <thead className="sticky top-0 bg-gray-50 text-gray-600">
+                                                <tr>
+                                                    <th className="p-2 text-left whitespace-nowrap">품목</th>
+                                                    <th className="p-2 text-right whitespace-nowrap">120</th>
+                                                    <th className="p-2 text-right whitespace-nowrap">150</th>
+                                                    <th className="p-2 text-right whitespace-nowrap">160</th>
+                                                    <th className="p-2 text-right whitespace-nowrap">180</th>
+                                                    <th className="p-2 text-right whitespace-nowrap">210</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Object.entries(singleProductPrices[singleType].products).map(([name, prices]) => (
+                                                    <tr key={name} className="border-t border-gray-100">
+                                                        <td className="p-2 text-left font-bold text-gray-700 whitespace-nowrap">{name}</td>
+                                                        {["120*200", "150*200", "160*200", "180*210", "210*210"].map(size => (
+                                                            <td key={size} className="p-2 text-right font-bold text-gray-900 whitespace-nowrap">{formatNum(prices[size])}</td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -726,4 +906,3 @@
     </script>
 </body>
 </html>
-
