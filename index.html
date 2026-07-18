@@ -97,7 +97,7 @@
             "210*210": 5478000
         };
 
-        // 단품 정상가 데이터 (헤드보드 / 토퍼)
+        // 단품 정상가 데이터 (헤드보드 / 토퍼 / 상단 매트리스)
         const singleProductPrices = {
             headboard: {
                 label: "헤드보드 선택",
@@ -126,6 +126,28 @@
                     "Star Rose": {"120*200": 4268000, "150*200": 5077000, "160*200": 5236000, "180*210": 6149000, "210*210": 7073000},
                     "Optima": {"120*200": 4631000, "150*200": 5292000, "160*200": 5368000, "180*210": 6512000, "210*210": 7436000}
                 }
+            },
+            upperMattress: {
+                label: "라인 선택",
+                defaultProduct: "Riversible J4",
+                defaultOption: "Topper3",
+                products: {
+                    "Riversible J4": {
+                        "Topper3": {"120*200": 7305000, "150*200": 9814000, "160*200": 11234000, "180*210": 12592000, "210*210": 16056000},
+                        "Tempsmart": {"120*200": 8162000, "150*200": 10671000, "160*200": 11895000, "180*210": 13731000, "210*210": 17280000},
+                        "Optima": {"120*200": 8406000, "150*200": 11283000, "160*200": 12629000, "180*210": 14294000, "210*210": 17929000}
+                    },
+                    "Riversible J5": {
+                        "Topper3": {"120*200": 10426000, "150*200": 12507000, "160*200": 13376000, "180*210": 14734000, "210*210": 17954000},
+                        "Tempsmart": {"120*200": 11283000, "150*200": 13364000, "160*200": 14037000, "180*210": 15873000, "210*210": 19178000},
+                        "Optima": {"120*200": 11528000, "150*200": 13976000, "160*200": 14771000, "180*210": 16436000, "210*210": 19826000}
+                    },
+                    "Riversible J6": {
+                        "Topper3": {"120*200": 12813000, "150*200": 15628000, "160*200": 16252000, "180*210": 18100000, "210*210": 20708000},
+                        "Tempsmart": {"120*200": 13670000, "150*200": 16485000, "160*200": 16913000, "180*210": 19239000, "210*210": 21932000},
+                        "Optima": {"120*200": 13914000, "150*200": 17097000, "160*200": 17648000, "180*210": 19802000, "210*210": 22580000}
+                    }
+                }
             }
         };
 
@@ -140,6 +162,7 @@
             const [isSinglePanelOpen, setIsSinglePanelOpen] = useState(false);
             const [singleType, setSingleType] = useState('headboard');
             const [singleProduct, setSingleProduct] = useState(singleProductPrices.headboard.defaultProduct);
+            const [singleOption, setSingleOption] = useState('Topper3');
             const [singleSize, setSingleSize] = useState('160*200');
             const [singleAppliedText, setSingleAppliedText] = useState('');
 
@@ -224,13 +247,22 @@
             const handleSingleTypeChange = (type) => {
                 setSingleType(type);
                 setSingleProduct(singleProductPrices[type].defaultProduct);
+                setSingleOption(singleProductPrices[type].defaultOption || '');
                 setSingleSize('160*200');
             };
 
-            const applySingleProduct = () => {
+            const getSelectedSinglePrice = () => {
                 const data = singleProductPrices[singleType];
-                const price = data.products[singleProduct]?.[singleSize] || 0;
-                const typeText = singleType === 'headboard' ? '헤드보드' : '토퍼';
+                if (singleType === 'upperMattress') {
+                    return data.products[singleProduct]?.[singleOption]?.[singleSize] || 0;
+                }
+                return data.products[singleProduct]?.[singleSize] || 0;
+            };
+
+            const applySingleProduct = () => {
+                const price = getSelectedSinglePrice();
+                const typeText = singleType === 'headboard' ? '헤드보드' : (singleType === 'topper' ? '토퍼' : '상단 매트리스');
+                const optionText = singleType === 'upperMattress' ? ` ${singleOption}` : '';
 
                 setSelectedType('직접 입력');
                 setSelectedSize('');
@@ -239,7 +271,7 @@
                 setExtraPrice(0);
                 setBrandDc(0);
                 setAddDc(0);
-                setSingleAppliedText(`${typeText} ${singleProduct} ${singleSize} 정상가 적용`);
+                setSingleAppliedText(`${typeText} ${singleProduct}${optionText} ${singleSize} 정상가 적용`);
                 setIsSinglePanelOpen(false);
             };
 
@@ -801,7 +833,7 @@
                                 <div className="p-5 bg-gray-50 border-b border-gray-200 flex items-start justify-between gap-4">
                                     <div>
                                         <h2 className="text-xl font-black text-gray-900">단품 가격표</h2>
-                                        <p className="mt-1 text-sm text-gray-500 font-bold">헤드보드/토퍼 정상가를 계산기에 바로 적용합니다.</p>
+                                        <p className="mt-1 text-sm text-gray-500 font-bold">헤드보드·토퍼·상단 매트리스 정상가를 계산기에 바로 적용합니다.</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSinglePanelOpen(false)}
@@ -812,7 +844,7 @@
                                 </div>
 
                                 <div className="p-5 overflow-y-auto">
-                                    <div className="grid grid-cols-2 gap-1 p-1 bg-gray-100 border border-gray-200 rounded-lg mb-5">
+                                    <div className="grid grid-cols-3 gap-1 p-1 bg-gray-100 border border-gray-200 rounded-lg mb-5">
                                         <button
                                             onClick={() => handleSingleTypeChange('headboard')}
                                             className={`py-2 rounded-md text-sm font-black transition-all ${singleType === 'headboard' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -824,6 +856,12 @@
                                             className={`py-2 rounded-md text-sm font-black transition-all ${singleType === 'topper' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                         >
                                             토퍼
+                                        </button>
+                                        <button
+                                            onClick={() => handleSingleTypeChange('upperMattress')}
+                                            className={`py-2 px-1 rounded-md text-sm font-black transition-all ${singleType === 'upperMattress' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        >
+                                            상단 매트리스
                                         </button>
                                     </div>
 
@@ -840,6 +878,21 @@
                                                 ))}
                                             </select>
                                         </div>
+
+                                        {singleType === 'upperMattress' && (
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">컴포트 옵션 선택</label>
+                                                <select
+                                                    value={singleOption}
+                                                    onChange={(e) => setSingleOption(e.target.value)}
+                                                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                                                >
+                                                    {Object.keys(singleProductPrices.upperMattress.products[singleProduct] || {}).map(option => (
+                                                        <option key={option} value={option}>{option}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
 
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-2">사이즈 선택</label>
@@ -858,7 +911,7 @@
                                     <div className="mt-5 p-4 bg-gray-900 rounded-xl text-white">
                                         <span className="block text-sm text-gray-400 font-bold">선택 정상가</span>
                                         <strong className="block mt-2 text-right text-2xl text-yellow-400 font-black">
-                                            {formatNum(singleProductPrices[singleType].products[singleProduct]?.[singleSize] || 0)} 원
+                                            {formatNum(getSelectedSinglePrice())} 원
                                         </strong>
                                     </div>
 
@@ -882,14 +935,28 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {Object.entries(singleProductPrices[singleType].products).map(([name, prices]) => (
-                                                    <tr key={name} className="border-t border-gray-100">
-                                                        <td className="p-2 text-left font-bold text-gray-700 whitespace-nowrap">{name}</td>
-                                                        {["120*200", "150*200", "160*200", "180*210", "210*210"].map(size => (
-                                                            <td key={size} className="p-2 text-right font-bold text-gray-900 whitespace-nowrap">{formatNum(prices[size])}</td>
-                                                        ))}
-                                                    </tr>
-                                                ))}
+                                                {singleType === 'upperMattress'
+                                                    ? Object.entries(singleProductPrices.upperMattress.products).flatMap(([line, options]) =>
+                                                        Object.entries(options).map(([option, prices]) => (
+                                                            <tr key={`${line}-${option}`} className="border-t border-gray-100">
+                                                                <td className="p-2 text-left font-bold text-gray-700 whitespace-nowrap">
+                                                                    <span className="block">{line}</span>
+                                                                    <span className="block text-[10px] text-blue-600">{option}</span>
+                                                                </td>
+                                                                {["120*200", "150*200", "160*200", "180*210", "210*210"].map(size => (
+                                                                    <td key={size} className="p-2 text-right font-bold text-gray-900 whitespace-nowrap">{formatNum(prices[size])}</td>
+                                                                ))}
+                                                            </tr>
+                                                        ))
+                                                    )
+                                                    : Object.entries(singleProductPrices[singleType].products).map(([name, prices]) => (
+                                                        <tr key={name} className="border-t border-gray-100">
+                                                            <td className="p-2 text-left font-bold text-gray-700 whitespace-nowrap">{name}</td>
+                                                            {["120*200", "150*200", "160*200", "180*210", "210*210"].map(size => (
+                                                                <td key={size} className="p-2 text-right font-bold text-gray-900 whitespace-nowrap">{formatNum(prices[size])}</td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
                                             </tbody>
                                         </table>
                                     </div>
