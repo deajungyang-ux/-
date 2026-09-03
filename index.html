@@ -544,7 +544,7 @@
                                     className="relative flex items-center gap-1.5 bg-amber-400 hover:bg-amber-300 text-gray-950 px-3 py-2 rounded-lg text-sm font-black transition-colors shadow-sm border border-amber-300 cursor-pointer"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12v10H4V12m16 0H4m16 0h1V7h-4.5M4 12H3V7h4.5m4.5 15V7m0 0H8.5A2.5 2.5 0 116 4.5C6 7 12 7 12 7zm0 0h3.5A2.5 2.5 0 1018 4.5C18 7 12 7 12 7z" /></svg>
-                                    <span>8월 프로모션</span>
+                                    <span>9·10월 프로모션</span>
                                     <span className="absolute -right-1 -top-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-gray-900" aria-label="새 프로모션"></span>
                                 </button>
                                 <button
@@ -842,16 +842,16 @@
                         <div className="fixed inset-0 z-50 flex justify-end">
                             <button
                                 type="button"
-                                aria-label="8월 프로모션 닫기"
+                                aria-label="9·10월 프로모션 닫기"
                                 onClick={() => setIsPromotionPanelOpen(false)}
                                 className="absolute inset-0 bg-gray-950/45 cursor-default"
                             />
                             <aside className="relative z-10 h-full w-full max-w-xl bg-white shadow-2xl border-l border-gray-200 flex flex-col">
                                 <div className="p-5 bg-gray-950 text-white border-b border-gray-800 flex items-start justify-between gap-4">
                                     <div>
-                                        <span className="text-xs font-bold tracking-widest text-amber-300">AUGUST BENEFITS</span>
-                                        <h2 className="mt-1 text-xl font-black">8월 주요 프로모션</h2>
-                                        <p className="mt-1 text-sm text-gray-300">리터치 대상 고객에게 적극 안내해 주세요.</p>
+                                        <span className="text-xs font-bold tracking-widest text-amber-300">AUTUMN DEEP REST</span>
+                                        <h2 className="mt-1 text-xl font-black">9·10월 추석·가을맞이 프로모션</h2>
+                                        <p className="mt-1 text-sm text-gray-300">풍요로운 깊은 휴식을 위한 옌센 침실 풀세팅 기획전</p>
                                     </div>
                                     <button
                                         onClick={() => setIsPromotionPanelOpen(false)}
@@ -865,56 +865,48 @@
                                 <div className="p-5 overflow-y-auto space-y-4 bg-gray-50">
                                     <section className="overflow-hidden rounded-lg border border-amber-200 bg-white shadow-sm">
                                         <div className="flex items-center justify-between gap-3 bg-amber-50 px-4 py-3 border-b border-amber-100">
-                                            <h3 className="font-black text-gray-900">Jensen 8월 홈스타일링 페어</h3>
-                                            <span className="shrink-0 text-xs font-bold text-amber-800">전 점포</span>
+                                            <div><span className="text-xs font-bold text-amber-700">LINEUP BENEFIT</span><h3 className="mt-1 font-black text-gray-900">라인업별 맞춤 할인</h3></div>
+                                            <span className="shrink-0 rounded bg-amber-100 px-2 py-1 text-xs font-black text-amber-800">최대 30%</span>
                                         </div>
-                                        <div className="p-4 space-y-3 text-sm text-gray-700 leading-relaxed">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-0 sm:divide-x sm:divide-gray-200 border-y border-gray-100 py-3">
-                                                <div className="sm:pr-3"><span className="block text-xs text-gray-500">전 품목</span><strong className="mt-1 block text-xl text-amber-700">20% 특별 할인</strong></div>
-                                                <div className="border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0 sm:pl-3"><span className="block text-xs text-gray-500">기본 증정</span><strong className="mt-1 block text-base">오토만</strong><span className="text-xs text-gray-500">300만원 상당</span></div>
-                                            </div>
-                                            <p><strong className="text-gray-900">비건구스 침구 SET 추가 증정 대상</strong><br/>맞춤형 커스터마이징, 신규 입주·웨딩 고객 또는 2조 이상 구매 고객</p>
+                                        <div className="grid grid-cols-3 divide-x divide-gray-100 p-4 text-center">
+                                            <div><span className="block text-xs text-gray-500">노르딕</span><strong className="mt-1 block text-xl text-gray-900">10%</strong></div>
+                                            <div><span className="block text-xs text-gray-500">컨티넨탈</span><strong className="mt-1 block text-xl text-amber-700">20%</strong></div>
+                                            <div><span className="block text-xs text-gray-500">모션베드</span><strong className="mt-1 block text-xl text-rose-700">30%</strong></div>
                                         </div>
                                     </section>
 
-                                    <section className="rounded-lg border border-blue-200 bg-white p-4 shadow-sm">
+                                    <section className="rounded-lg border border-emerald-200 bg-white p-4 shadow-sm">
                                         <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
-                                            <div><span className="text-xs font-bold text-blue-600">LOTTE DEPARTMENT STORE</span><h3 className="mt-1 font-black text-gray-900">롯데백화점 사은 및 카드 혜택</h3></div>
-                                            <span className="shrink-0 rounded bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">15% 사은</span>
-                                        </div>
-                                        <div className="mt-3 space-y-2 text-sm text-gray-700">
-                                            <p><strong className="text-gray-900">행사 기간</strong> · 8/7–9, 8/14–17</p>
-                                            <p><strong className="text-gray-900">현대카드 결제</strong> · 13% 제휴 사은</p>
-                                            <p><strong className="text-gray-900">롯데백화점 현대카드</strong> · 추가 2% 혜택</p>
-                                        </div>
-                                    </section>
-
-                                    <section className="rounded-lg border border-indigo-200 bg-white p-4 shadow-sm">
-                                        <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
-                                            <div><span className="text-xs font-bold text-indigo-600">HYUNDAI DEPARTMENT STORE</span><h3 className="mt-1 font-black text-gray-900">클럽웨딩 및 입주민 프로모션</h3></div>
-                                            <span className="shrink-0 rounded bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-700">15% + 3%</span>
+                                            <div><span className="text-xs font-bold text-emerald-700">FULL SET GIFT</span><h3 className="mt-1 font-black text-gray-900">침실 풀세팅 사은품</h3></div>
+                                            <span className="shrink-0 rounded bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800">2종 모두 증정</span>
                                         </div>
                                         <div className="mt-3 space-y-3 text-sm text-gray-700 leading-relaxed">
-                                            <div><p className="font-black text-gray-900">압구정 현대 8월 상시 사은</p><p>8/1–31 · 10% 사은</p></div>
-                                            <div className="border-t border-gray-100 pt-3"><p className="font-black text-gray-900">클럽웨딩 가입 고객</p><p>8/14–17, 8/28–30 · H.Point 15% + 3% 적립</p></div>
-                                            <div className="border-t border-gray-100 pt-3"><p className="font-black text-gray-900">디에이치방배 입주민</p><p>8/1–10/31 · H.Point 15% 적립</p><p>컨티넨탈 침대 구매 시 25% 할인 + 비건구스 세트 증정</p></div>
+                                            <p><strong className="text-gray-900">컨티넨탈 Q 사이즈 이상</strong><br/>300만 원 상당 최고급 오토만 + 프리미엄 비건구스 침구 세트</p>
+                                            <p className="border-t border-gray-100 pt-3"><strong className="text-gray-900">컨티넨탈 SS · 노르딕 시리즈</strong><br/>프리미엄 비건구스 침구 세트</p>
                                         </div>
                                     </section>
 
                                     <section className="rounded-lg border border-rose-200 bg-white p-4 shadow-sm">
                                         <div className="flex items-center justify-between gap-3">
-                                            <div><span className="text-xs font-bold text-rose-600">SPECIAL PRICE</span><h3 className="mt-1 font-black text-gray-900">특가전</h3></div>
-                                            <span className="shrink-0 text-xs font-bold text-gray-500">7/24–8/31</span>
+                                            <div><span className="text-xs font-bold text-rose-600">LAST CHANCE</span><h3 className="mt-1 font-black text-gray-900">단종 모델 특별 할인</h3></div>
+                                            <strong className="text-2xl text-rose-700">30%</strong>
                                         </div>
-                                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-0 sm:divide-x sm:divide-gray-200 border-t border-gray-100 pt-3">
-                                            <div className="sm:pr-3"><span className="block text-xs text-rose-700">헤드보드 특가전</span><strong className="mt-1 block text-xl text-rose-700">40% 할인</strong></div>
-                                            <div className="border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0 sm:pl-3"><span className="block text-xs text-gray-600">전시 상품 기획전</span><strong className="mt-1 block text-xl text-gray-900">45% 할인</strong></div>
+                                        <p className="mt-3 border-t border-gray-100 pt-3 text-sm leading-relaxed text-gray-700">C라인 · 단종 패브릭 · 단종 헤드보드(포트레이트)</p>
+                                    </section>
+
+                                    <section className="rounded-lg border border-indigo-200 bg-white p-4 shadow-sm">
+                                        <span className="text-xs font-bold text-indigo-600">EVENT INFORMATION</span>
+                                        <h3 className="mt-1 font-black text-gray-900">행사 기간 및 점포</h3>
+                                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                                            <p><strong className="text-gray-900">기간</strong> · 2026년 9월–10월</p>
+                                            <p><strong className="text-gray-900">롯데</strong> · 잠실점, 부산본점</p>
+                                            <p><strong className="text-gray-900">현대</strong> · 압구정본점, 판교점</p>
                                         </div>
                                     </section>
 
                                     <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-600">
                                         <strong className="block text-gray-900">고객 안내 메모</strong>
-                                        <p className="mt-1">행사 대상, 결제 카드, 중복 적용 여부와 증정 조건은 최종 결제 전 반드시 확인해 주세요.</p>
+                                        <p className="mt-1">할인 대상, 중복 적용 여부, 사은품 수령 조건과 재고는 최종 결제 전 반드시 확인해 주세요.</p>
                                     </div>
                                 </div>
                             </aside>
