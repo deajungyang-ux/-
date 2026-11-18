@@ -1601,8 +1601,8 @@
                                     <div className="flex flex-col gap-2">
                                         <select id="bed-lineup" value={selectedType} onChange={handleTypeChange} style={{ color: lineupColor }} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none">
                                             <option value="직접 입력" style={{ color: getLineupColor('직접 입력') }}>직접 입력</option>
-                                            {Object.keys(priceData).sort((a, b) => {
-                                                const groups = ['노르딕 C', '노르딕 J', '컨티넨탈 J', '어져스터블 J'];
+                                            {Object.keys(priceData).filter(type => !type.startsWith('노르딕 C')).sort((a, b) => {
+                                                const groups = ['노르딕 J', '컨티넨탈 J', '어져스터블 J'];
                                                 const groupA = groups.findIndex(group => a.startsWith(group));
                                                 const groupB = groups.findIndex(group => b.startsWith(group));
                                                 return groupA - groupB || b.localeCompare(a, 'ko', { numeric: true });
