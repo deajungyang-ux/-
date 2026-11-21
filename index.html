@@ -1036,12 +1036,16 @@
             return '#374151';
         }
 
+        function getBedSizeLabel(size) {
+            const sizeNames = { '120*200': 'SS', '150*200': 'Q', '160*200': 'K', '180*210': 'LK', '210*210': 'EK' };
+            return `${sizeNames[size] || ''} ${size.replace('*', ' × ')} cm`.trim();
+        }
+
         function getQuoteProduct(type, size, model, appliedSingle) {
             if (type === '직접 입력') {
                 return appliedSingle || { title: '직접 입력 견적', details: ['제품 정보 미지정'], complete: false };
             }
-            const sizeNames = { '120*200': 'SS', '150*200': 'Q', '160*200': 'K', '180*210': 'LK', '210*210': 'EK' };
-            const sizeText = size ? `${sizeNames[size] || ''} ${size.replace('*', ' × ')} cm`.trim() : '사이즈 미선택';
+            const sizeText = size ? getBedSizeLabel(size) : '사이즈 미선택';
             const headText = model === '무헤드' ? '무헤드 · 매트리스 + 베이스' :
                 model ? `헤드보드 ${model}` : '헤드보드 미선택';
             return { title: type, details: [sizeText, headText], complete: Boolean(size && model) };
@@ -1610,7 +1614,7 @@
                                         </select>
                                         <select aria-label="침대 사이즈" value={selectedSize} onChange={handleSizeChange} disabled={selectedType === '직접 입력'} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400">
                                             <option value="">사이즈 선택</option>
-                                            {selectedType !== '직접 입력' && displaySizes.map(s => <option key={s} value={s}>{s}</option>)}
+                                            {selectedType !== '직접 입력' && displaySizes.map(s => <option key={s} value={s}>{getBedSizeLabel(s)}</option>)}
                                         </select>
                                         <select aria-label="헤드보드" value={selectedModel} onChange={handleModelChange} disabled={selectedType === '직접 입력' || !selectedSize || selectedSize === '사이즈 선택'} className="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-400">
                                             <option value="">헤드보드 선택</option>
